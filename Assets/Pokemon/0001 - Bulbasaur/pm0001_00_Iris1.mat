@@ -45,7 +45,7 @@ Material:
     - _NormalStrength: 1
     - _Occlusion: 1
     - _Smoothness: 0
-    - _WhiteInMaskThreshold: 0.75
+    - _WhiteInMaskThreshold: 0.71
     m_Colors:
     - _BaseMapOffset: {r: 1, g: 0, b: 0, a: 0}
     - _BaseMapTiling: {r: 4, g: 4, b: 0, a: 0}

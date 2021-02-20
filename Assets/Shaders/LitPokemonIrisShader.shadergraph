@@ -10,7 +10,7 @@
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.Internal.Texture2DShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"19679cac-2073-49a2-9ac8-ede9f2bace60\"\n    },\n    \"m_Name\": \"BaseMap\",\n    \"m_DefaultReferenceName\": \"Texture2D_381AED5\",\n    \"m_OverrideReferenceName\": \"_BaseMap\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 0,\n    \"m_GPUInstanced\": false,\n    \"m_Hidden\": false,\n    \"m_Value\": {\n        \"m_SerializedTexture\": \"{\\\"texture\\\":{\\\"fileID\\\":2800000,\\\"guid\\\":\\\"8e1253a03ce588e45965c9412eb1c6bc\\\",\\\"type\\\":3}}\",\n        \"m_Guid\": \"\"\n    },\n    \"m_Modifiable\": true,\n    \"m_DefaultType\": 0\n}"
+            "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"19679cac-2073-49a2-9ac8-ede9f2bace60\"\n    },\n    \"m_Name\": \"BaseMap\",\n    \"m_DefaultReferenceName\": \"Texture2D_381AED5\",\n    \"m_OverrideReferenceName\": \"_BaseMap\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 0,\n    \"m_GPUInstanced\": false,\n    \"m_Hidden\": false,\n    \"m_Value\": {\n        \"m_SerializedTexture\": \"{\\\"texture\\\":{\\\"fileID\\\":2800000,\\\"guid\\\":\\\"1043a512cded8374f825b3e737f6b1f2\\\",\\\"type\\\":3}}\",\n        \"m_Guid\": \"\"\n    },\n    \"m_Modifiable\": true,\n    \"m_DefaultType\": 0\n}"
         },
         {
             "typeInfo": {
@@ -88,7 +88,7 @@
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.Internal.Texture2DShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"cdc9b153-d86a-4a1e-99fe-eb7a06ff37bd\"\n    },\n    \"m_Name\": \"Mask\",\n    \"m_DefaultReferenceName\": \"Texture2D_7C2CB224\",\n    \"m_OverrideReferenceName\": \"_Mask\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 0,\n    \"m_GPUInstanced\": false,\n    \"m_Hidden\": false,\n    \"m_Value\": {\n        \"m_SerializedTexture\": \"{\\\"texture\\\":{\\\"fileID\\\":2800000,\\\"guid\\\":\\\"5b4213441b8f4cd4880de523ae72e315\\\",\\\"type\\\":3}}\",\n        \"m_Guid\": \"\"\n    },\n    \"m_Modifiable\": true,\n    \"m_DefaultType\": 0\n}"
+            "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"cdc9b153-d86a-4a1e-99fe-eb7a06ff37bd\"\n    },\n    \"m_Name\": \"Mask\",\n    \"m_DefaultReferenceName\": \"Texture2D_7C2CB224\",\n    \"m_OverrideReferenceName\": \"_Mask\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 0,\n    \"m_GPUInstanced\": false,\n    \"m_Hidden\": false,\n    \"m_Value\": {\n        \"m_SerializedTexture\": \"{\\\"texture\\\":{\\\"fileID\\\":2800000,\\\"guid\\\":\\\"34d8e53a6471f6044867030f57d660c5\\\",\\\"type\\\":3}}\",\n        \"m_Guid\": \"\"\n    },\n    \"m_Modifiable\": true,\n    \"m_DefaultType\": 0\n}"
         },
         {
             "typeInfo": {
