@@ -58,10 +58,63 @@ public class RawImporter2 : MonoBehaviour
         var whiteMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Scripts/RawImportScripts/TestMat.mat");
 
         var meshCounter = 0;
+        var RootBoneId = string.Empty;
+        if ((h3DModel.Skeleton?.Count ?? 0) > 0)
+        {
+            
+            var ChildBones = new Queue<Tuple<H3DBone, SkeletonUtils.SkeletonNode>>();
+
+            var RootNode = new SkeletonUtils.SkeletonNode();
+
+            ChildBones.Enqueue(Tuple.Create(h3DModel.Skeleton[0], RootNode));
+
+            RootBoneId = $"#{h3DModel.Skeleton[0].Name}_bone_id";
+
+            while (ChildBones.Count > 0)
+            {
+                var Bone_Node = ChildBones.Dequeue();
+
+                var Bone = Bone_Node.Item1;
+
+                Bone_Node.Item2.id   = $"{Bone.Name}_bone_id";
+                Bone_Node.Item2.name = Bone.Name;
+                Bone_Node.Item2.sid  = Bone.Name;
+                Bone_Node.Item2.type = SkeletonUtils.MeshUtilsSkeletonNodeType.JOINT;
+                Bone_Node.Item2.Translation =  VectorExtensions.CastNumericsVector3 (Bone.Translation);
+                // Bone_Node.Item2.SetBoneEuler(Bone.Translation, Bone.Rotation, Bone.Scale);
+                var rotVec = new Vector3 (RadToDegConstant * Bone.Rotation.X,
+                    RadToDegConstant * Bone.Rotation.Y, RadToDegConstant * Bone.Rotation.Z);
+                Bone_Node.Item2.Rotation = rotVec;
+                Bone_Node.Item2.Scale = VectorExtensions.CastNumericsVector3 (Bone.Scale);
+
+
+                foreach (H3DBone B in h3DModel.Skeleton)
+                {
+                    if (B.ParentIndex == -1) continue;
+
+                    H3DBone ParentBone = h3DModel.Skeleton[B.ParentIndex];
+
+                    if (ParentBone == Bone)
+                    {
+                        SkeletonUtils.SkeletonNode Node = new SkeletonUtils.SkeletonNode();
+
+                        ChildBones.Enqueue(Tuple.Create(B, Node));
+
+                        if (Bone_Node.Item2.Nodes == null) Bone_Node.Item2.Nodes = new List<SkeletonUtils.SkeletonNode>();
+
+                        Bone_Node.Item2.Nodes.Add(Node);
+                    }
+                }
+            }
+
+            SpawnBones(RootNode, sceneGo, emptyGo);
+        }
+
+        
         foreach (var h3DMesh in h3DModel.Meshes) {
             
             //TODO: Skeleton import
-
+            
             var modelGo = Instantiate (emptyGo, sceneGo.transform);
             modelGo.name = h3DModel.Name + meshCounter;
             var meshFilter = modelGo.AddComponent<MeshFilter> ();
@@ -71,34 +124,19 @@ public class RawImporter2 : MonoBehaviour
             var unityMeshNormals = new List<Vector3> ();
             var unityMeshUV = new List<Vector2> ();
             var unityMeshTriangles = new List<ushort> ();
-            var unityVertexBones = new List<float> ();
+            var unityVertexBones = new List<BoneWeight> ();
 
             var picaVertices = h3DMesh.GetVertices ();
             unityMeshVertices.AddRange (MeshUtils.PicaToUnityVertex (picaVertices));
             unityMeshNormals.AddRange (MeshUtils.PicaToUnityNormals (picaVertices));
             unityMeshTangents.AddRange (MeshUtils.PicaToUnityTangents (picaVertices));
             unityMeshUV.AddRange (MeshUtils.PicaToUnityUV (picaVertices));
+            unityVertexBones.AddRange (MeshUtils.PicaToUnityBoneWeights (picaVertices));
             
             List<BoneWeight1> currentMeshBoneWeights = new List<BoneWeight1> ();
             
-            var bonesPerVertexArray = new NativeArray<byte> ();
-            var weightsArray = new NativeArray<BoneWeight1> ();
             foreach (var subH3DMesh in h3DMesh.SubMeshes) {
                 unityMeshTriangles.AddRange (subH3DMesh.Indices);
-
-                var vertexWeightage = new List<byte> ();
-                foreach (var picaVertex in picaVertices) {
-                    vertexWeightage.Add (1);
-                    foreach (var singleBoneIndex in subH3DMesh.BoneIndices) {
-                        currentMeshBoneWeights.Add (new BoneWeight1 {
-                            boneIndex = Convert.ToInt32 (singleBoneIndex),
-                            weight = 1f
-                        });
-                        break;
-                    }
-                }
-                bonesPerVertexArray = new NativeArray<byte> (vertexWeightage.ToArray (), Allocator.Temp);
-                weightsArray = new NativeArray<BoneWeight1> (currentMeshBoneWeights.ToArray (), Allocator.Temp);
             }
 
             
@@ -108,14 +146,25 @@ public class RawImporter2 : MonoBehaviour
             mesh.tangents = unityMeshTangents.ToArray ();
             mesh.uv = unityMeshUV.ToArray ();
             mesh.SetTriangles (unityMeshTriangles ,0);
-            mesh.SetBoneWeights (bonesPerVertexArray , weightsArray);
-
             
+            mesh.boneWeights = unityVertexBones.ToArray (); 
+
             var meshRenderer = modelGo.AddComponent<SkinnedMeshRenderer> ();
+            meshRenderer.quality = SkinQuality.Bone4;
             meshRenderer.material = whiteMat;
             meshRenderer.sharedMesh = mesh;
+            var bonesTransform = sceneGo.transform.GetChild (0).GetComponentsInChildren<Transform> ();
+            meshRenderer.rootBone = bonesTransform[0];
+            meshRenderer.bones = bonesTransform;
+            meshRenderer.updateWhenOffscreen = true;
+            var bindPoses = new List<Matrix4x4> ();
+            for (int i = 0; i < bonesTransform.Length; i++) {
+                bindPoses.Add (bonesTransform[i].worldToLocalMatrix * bonesTransform[0].localToWorldMatrix);
+            }
+            mesh.bindposes = bindPoses.ToArray ();
+            
             meshFilter.sharedMesh = mesh;
-            SaveMeshAtPath (meshFilter.mesh, "Assets/Raw/test/test" + meshCounter++ + ".asset");
+            SaveMeshAtPath (mesh, "Assets/Raw/test/test" + meshCounter++ + ".asset");
         }
         DestroyImmediate (emptyGo);
     }
@@ -125,10 +174,12 @@ public class RawImporter2 : MonoBehaviour
     public static void SpawnBones (SkeletonUtils.SkeletonNode root, GameObject parentGo, GameObject nodeGo)
     {
         do {
-            var rotQuat = new Quaternion ();
-            rotQuat.SetEulerRotation (root.Rotation.x, root.Rotation.y, root.Rotation.z);
-            var rootGo = Instantiate (nodeGo, root.Translation, 
-                rotQuat, parentGo.transform);
+            var rotQuat = Quaternion.Euler (root.Rotation);
+            var rootGo = Instantiate (nodeGo, parentGo.transform);
+            rootGo.transform.position = root.Translation;
+            rootGo.transform.Rotate (new Vector3 (1,0,0), root.Rotation.x);
+            rootGo.transform.Rotate (new Vector3 (0,1,0), root.Rotation.y);
+            rootGo.transform.Rotate (new Vector3 (0,0,1), root.Rotation.z);
             
             rootGo.name = root.name;
             if (root.Nodes != null) {
