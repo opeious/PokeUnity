@@ -7,6 +7,7 @@ using SPICA.Formats.CtrH3D;
 using SPICA.Formats.CtrH3D.Model;
 using SPICA.PICA.Converters;
 using SPICA.WinForms.Formats;
+using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,7 +15,7 @@ using Random = UnityEngine.Random;
 
 public class RawImporter : MonoBehaviour
 {
-    [MenuItem("MyMenu/Testing")]
+    // [MenuItem("MyMenu/Testing")]
     static void TestImportRaw()
     {
         var scene = new H3D();
@@ -143,10 +144,21 @@ public class RawImporter : MonoBehaviour
             unityMeshTangents.AddRange (MeshUtils.PicaToUnityTangents (picaVertices));
             unityMeshUV.AddRange (MeshUtils.PicaToUnityUV (picaVertices));
             
-            unityMeshBones.AddRange (MeshUtils.PicaToUnityBoneWeights (picaVertices));
+            // unityMeshBones.AddRange (MeshUtils.PicaToUnityBoneWeights (picaVertices));
 
             var combinedTrisForSubMesh = new List<ushort> ();
+            List<BoneWeight1> boneWeight1s = new List<BoneWeight1> ();
             foreach (var subH3DMesh in h3DMesh.SubMeshes) {
+                foreach (var VARIABLE in subH3DMesh.BoneIndices) {
+                    // Debug.LogError(VARIABLE);
+                    boneWeight1s.Add (new BoneWeight1 {
+                        boneIndex = Convert.ToInt32(subH3DMesh.BoneIndices),
+                        weight = 1f
+                    });
+                }
+                byte[] bonesPerVertex = new byte[20];
+                var bonesPerVertexArray = new NativeArray<byte> (bonesPerVertex, Allocator.Temp);
+                var weightsArray = new NativeArray<BoneWeight1> (boneWeight1s.ToArray (), Allocator.Temp);
                 combinedTrisForSubMesh.AddRange (subH3DMesh.Indices);
             }
             if (matSubMeshDict.ContainsKey (h3DMesh.MaterialIndex)) {
