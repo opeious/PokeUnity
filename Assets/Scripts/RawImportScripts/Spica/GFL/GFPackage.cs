@@ -15,7 +15,7 @@ namespace SPICA.Formats.Packages
         {
             BinaryReader Reader = new BinaryReader(Input);
 
-            Magic = Reader.ReadBytes(2).ToString ();
+            Magic = Reader.ReadPaddedString(2);
 
             ushort Count = Reader.ReadUInt16();
 

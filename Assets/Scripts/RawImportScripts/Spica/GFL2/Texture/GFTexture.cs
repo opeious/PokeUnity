@@ -36,8 +36,8 @@ namespace SPICA.Formats.GFL2.Texture
 
             Reader.BaseStream.Seek(0xc, SeekOrigin.Current); //Padding? Always zero it seems
             
-            // Name = Reader.ReadPaddedString(0x40);
-            Name = Reader.ReadString ();
+            Name = Reader.ReadPaddedString(0x40);
+            // Name = Reader.ReadString ();
 
             Width      = Reader.ReadUInt16();
             Height     = Reader.ReadUInt16();

@@ -14,6 +14,24 @@ public class MeshUtils
         }
         return retVal;
     }
+
+    public static List<BoneWeight> PicaToUnityBoneWeights (PICAVertex[] picaVertices)
+    {
+        var retVal = new List<BoneWeight> ();
+        foreach (var picaVertex in picaVertices) {
+            retVal.Add (new BoneWeight {
+                boneIndex0 = picaVertex.Indices.b0,
+                boneIndex1 = picaVertex.Indices.b1,
+                boneIndex2 = picaVertex.Indices.b2,
+                boneIndex3 = picaVertex.Indices.b3,
+                weight0 = picaVertex.Weights.w0,
+                weight1 = picaVertex.Weights.w1,
+                weight2 = picaVertex.Weights.w2,
+                weight3 = picaVertex.Weights.w3,
+            });
+        }
+        return retVal;
+    }
     
     public static List<Vector4> PicaToUnityTangents (PICAVertex[] picaVertices)
     {
@@ -23,6 +41,16 @@ public class MeshUtils
         }
         return retVal;
     }
+    
+    public static List<Vector2> PicaToUnityUV (PICAVertex[] picaVertices)
+    {
+        var retVal = new List<Vector2> ();
+        foreach (var picaVertex in picaVertices) {
+            retVal.Add (new Vector2(picaVertex.TexCoord0.X, picaVertex.TexCoord0.Y));
+        }
+        return retVal;
+    }
+    
     public static List<Vector3> PicaToUnityNormals (PICAVertex[] picaVertices)
     {
         var retVal = new List<Vector3> ();

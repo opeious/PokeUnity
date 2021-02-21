@@ -22,12 +22,12 @@ namespace SPICA.Formats.CtrH3D
 
         void ICustomSerialization.Deserialize(BinaryDeserializer Deserializer)
         {
-            Str = Deserializer.Reader.ReadString();
+            Str = Deserializer.Reader.ReadNullTerminatedStringUtf16LE();
         }
 
         bool ICustomSerialization.Serialize(BinarySerializer Serializer)
         {
-            Serializer.Writer.Write(Str);
+            Serializer.Writer.WriteNullTerminatedStringUtf16LE(Str);
 
             return true;
         }

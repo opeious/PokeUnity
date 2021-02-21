@@ -201,6 +201,7 @@ public class PokemonAssetImporter : AssetPostprocessor
     
     private void OnPostprocessModel (GameObject g)
     {
+        return;
         var modelImporter = assetImporter as ModelImporter;
         if (modelImporter == null) return;
 
