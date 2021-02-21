@@ -13,6 +13,7 @@ namespace SPICA.PICA.Converters
         public static PICAVertex[] GetVertices(H3DMesh Mesh)
         {
             if (Mesh.RawBuffer.Length == 0) return new PICAVertex[0];
+            if (Mesh.RawBuffer.Length == 0) return new PICAVertex[0];
 
             float[] Elems = new float[4];
 
