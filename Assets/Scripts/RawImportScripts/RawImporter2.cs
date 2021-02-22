@@ -83,16 +83,62 @@ public class RawImporter2 : MonoBehaviour
                 var unityMeshNormals = new List<Vector3> ();
                 var unityMeshUV = new List<Vector2> ();
                 var unityMeshTriangles = new List<ushort> ();
-                var unityVertexBones = new List<BoneWeight> ();
 
-                
                 unityMeshPositions.AddRange (MeshUtils.PicaToUnityVertex (picaVertices));
                 unityMeshNormals.AddRange (MeshUtils.PicaToUnityNormals (picaVertices));
                 unityMeshTangents.AddRange (MeshUtils.PicaToUnityTangents (picaVertices));
                 unityMeshUV.AddRange (MeshUtils.PicaToUnityUV (picaVertices));
                 unityMeshTriangles.AddRange (subMesh.Indices);
+
+                var unityVertexBones = new List<BoneWeight> ();
+
+                if (subMesh.Skinning == H3DSubMeshSkinning.Smooth) {
+                    foreach (var picaVertex in picaVertices) {
+                        var vertexBoneWeight = new BoneWeight ();
+                        for (var boneIndexInVertex = 0; boneIndexInVertex < 4; boneIndexInVertex++) {
+                            var bIndex = picaVertex.Indices[boneIndexInVertex];
+                            var weight = picaVertex.Weights[boneIndexInVertex];
+
+                            if (weight == 0) break;
+
+                            if (bIndex < subMesh.BoneIndices.Length && bIndex > -1)
+                                bIndex = subMesh.BoneIndices[bIndex];
+                            else
+                                bIndex = 0;
+
+                            if (boneIndexInVertex == 0) {
+                                vertexBoneWeight.weight0 = weight;
+                                vertexBoneWeight.boneIndex0 = bIndex;
+                            } else if (boneIndexInVertex == 1) {
+                                vertexBoneWeight.weight1 = weight;
+                                vertexBoneWeight.boneIndex1 = bIndex;
+                            } else if (boneIndexInVertex == 2) {
+                                vertexBoneWeight.weight2 = weight;
+                                vertexBoneWeight.boneIndex2 = bIndex;
+                            } else if (boneIndexInVertex == 3) {
+                                vertexBoneWeight.weight3 = weight;
+                                vertexBoneWeight.boneIndex3 = bIndex;
+                            }
+                        }
+                        unityVertexBones.Add (vertexBoneWeight);
+                    }
+                } else {
+                    foreach (var picaVertex in picaVertices) {
+                        var bIndex = picaVertex.Indices[0];
+
+                        if (bIndex < subMesh.BoneIndices.Length && bIndex > -1)
+                            bIndex = subMesh.BoneIndices[bIndex];
+                        else
+                            bIndex = 0;
+
+                        var vertexBoneWeight = new BoneWeight {
+                            boneIndex0 = bIndex,
+                            weight0 = 1
+                        };
+                        unityVertexBones.Add (vertexBoneWeight);
+                    }
+                }
                 
-                unityVertexBones.AddRange (MeshUtils.PicaToUnityBoneWeights (picaVertices));
                 
                 mesh.subMeshCount = 1;
                 mesh.vertices = unityMeshPositions.ToArray ();

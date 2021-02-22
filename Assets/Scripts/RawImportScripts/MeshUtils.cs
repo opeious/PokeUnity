@@ -15,32 +15,32 @@ public class MeshUtils
         return retVal;
     }
 
-    public static List<BoneWeight> PicaToUnityBoneWeights (PICAVertex[] picaVertices)
-    {
-        var retVal = new List<BoneWeight> ();
-        int maxIndex = 0;
-        foreach (var picaVertex in picaVertices) {
-            var singleBoneWeight = new BoneWeight ();
-            if (picaVertex.Weights.w0 > 0) {
-                singleBoneWeight.weight0 = picaVertex.Weights.w0;
-                singleBoneWeight.boneIndex0 = picaVertex.Indices.b0;
-            }
-            if (picaVertex.Weights.w1 > 0) {
-                singleBoneWeight.weight1 = picaVertex.Weights.w1;
-                singleBoneWeight.boneIndex1 = picaVertex.Indices.b1;
-            }
-            if (picaVertex.Weights.w2 > 0) {
-                singleBoneWeight.weight2 = picaVertex.Weights.w2;
-                singleBoneWeight.boneIndex2 = picaVertex.Indices.b2;
-            }
-            if (picaVertex.Weights.w3 > 0) {
-                singleBoneWeight.weight3 = picaVertex.Weights.w3;
-                singleBoneWeight.boneIndex3 = picaVertex.Indices.b3;
-            }
-            retVal.Add (singleBoneWeight);
-        }
-        return retVal;
-    }
+    // public static List<BoneWeight> PicaToUnityBoneWeights (PICAVertex[] picaVertices)
+    // {
+    //     var retVal = new List<BoneWeight> ();
+    //     int maxIndex = 0;
+    //     foreach (var picaVertex in picaVertices) {
+    //         var singleBoneWeight = new BoneWeight ();
+    //         if (picaVertex.Weights.w0 > 0) {
+    //             singleBoneWeight.weight0 = picaVertex.Weights.w0;
+    //             singleBoneWeight.boneIndex0 = picaVertex.Indices.b0;
+    //         }
+    //         if (picaVertex.Weights.w1 > 0) {
+    //             singleBoneWeight.weight1 = picaVertex.Weights.w1;
+    //             singleBoneWeight.boneIndex1 = picaVertex.Indices.b1;
+    //         }
+    //         if (picaVertex.Weights.w2 > 0) {
+    //             singleBoneWeight.weight2 = picaVertex.Weights.w2;
+    //             singleBoneWeight.boneIndex2 = picaVertex.Indices.b2;
+    //         }
+    //         if (picaVertex.Weights.w3 > 0) {
+    //             singleBoneWeight.weight3 = picaVertex.Weights.w3;
+    //             singleBoneWeight.boneIndex3 = picaVertex.Indices.b3;
+    //         }
+    //         retVal.Add (singleBoneWeight);
+    //     }
+    //     return retVal;
+    // }
     
     public static List<Vector4> PicaToUnityTangents (PICAVertex[] picaVertices)
     {
