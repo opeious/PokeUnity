@@ -6,11 +6,13 @@ using SPICA.Formats.Common;
 using SPICA.Formats.CtrH3D;
 using SPICA.Formats.CtrH3D.Model;
 using SPICA.Formats.CtrH3D.Model.Mesh;
+using SPICA.Formats.Generic.COLLADA;
 using SPICA.PICA.Converters;
 using SPICA.WinForms.Formats;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
@@ -53,63 +55,70 @@ public class RawImporter2 : MonoBehaviour
         var emptyGo = new GameObject("EmptyGo");
         var sceneGo = new GameObject("Test");
         
+        var test = new DAE(h3DScene, 0);
         
         //TODO: Material setup
         var whiteMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Scripts/RawImportScripts/TestMat.mat");
 
         var meshCounter = 0;
+        
+        SpawnBones (test.library_visual_scenes[0].node[0], sceneGo, emptyGo);
+
         var RootBoneId = string.Empty;
-        if ((h3DModel.Skeleton?.Count ?? 0) > 0)
-        {
-            
-            var ChildBones = new Queue<Tuple<H3DBone, SkeletonUtils.SkeletonNode>>();
-
-            var RootNode = new SkeletonUtils.SkeletonNode();
-
-            ChildBones.Enqueue(Tuple.Create(h3DModel.Skeleton[0], RootNode));
-
-            RootBoneId = $"#{h3DModel.Skeleton[0].Name}_bone_id";
-
-            while (ChildBones.Count > 0)
-            {
-                var Bone_Node = ChildBones.Dequeue();
-
-                var Bone = Bone_Node.Item1;
-
-                Bone_Node.Item2.id   = $"{Bone.Name}_bone_id";
-                Bone_Node.Item2.name = Bone.Name;
-                Bone_Node.Item2.sid  = Bone.Name;
-                Bone_Node.Item2.type = SkeletonUtils.MeshUtilsSkeletonNodeType.JOINT;
-                Bone_Node.Item2.Translation =  VectorExtensions.CastNumericsVector3 (Bone.Translation);
-                // Bone_Node.Item2.SetBoneEuler(Bone.Translation, Bone.Rotation, Bone.Scale);
-                var rotVec = new Vector3 (RadToDegConstant * Bone.Rotation.X,
-                    RadToDegConstant * Bone.Rotation.Y, RadToDegConstant * Bone.Rotation.Z);
-                Bone_Node.Item2.Rotation = rotVec;
-                Bone_Node.Item2.Scale = VectorExtensions.CastNumericsVector3 (Bone.Scale);
-
-
-                foreach (H3DBone B in h3DModel.Skeleton)
-                {
-                    if (B.ParentIndex == -1) continue;
-
-                    H3DBone ParentBone = h3DModel.Skeleton[B.ParentIndex];
-
-                    if (ParentBone == Bone)
-                    {
-                        SkeletonUtils.SkeletonNode Node = new SkeletonUtils.SkeletonNode();
-
-                        ChildBones.Enqueue(Tuple.Create(B, Node));
-
-                        if (Bone_Node.Item2.Nodes == null) Bone_Node.Item2.Nodes = new List<SkeletonUtils.SkeletonNode>();
-
-                        Bone_Node.Item2.Nodes.Add(Node);
-                    }
-                }
-            }
-
-            SpawnBones(RootNode, sceneGo, emptyGo);
-        }
-
+        //
+        // if ((h3DModel.Skeleton?.Count ?? 0) > 0)
+        // {
+        //     
+        //     var ChildBones = new Queue<Tuple<H3DBone, SkeletonUtils.SkeletonNode>>();
+        //
+        //     var RootNode = new SkeletonUtils.SkeletonNode();
+        //
+        //     ChildBones.Enqueue(Tuple.Create(h3DModel.Skeleton[0], RootNode));
+        //
+        //     RootBoneId = $"#{h3DModel.Skeleton[0].Name}_bone_id";
+        //
+        //     while (ChildBones.Count > 0)
+        //     {
+        //         var Bone_Node = ChildBones.Dequeue();
+        //
+        //         var Bone = Bone_Node.Item1;
+        //
+        //         Bone_Node.Item2.id   = $"{Bone.Name}_bone_id";
+        //         Bone_Node.Item2.name = Bone.Name;
+        //         Bone_Node.Item2.sid  = Bone.Name;
+        //         Bone_Node.Item2.type = SkeletonUtils.MeshUtilsSkeletonNodeType.JOINT;
+        //         Bone_Node.Item2.Translation =  VectorExtensions.CastNumericsVector3 (Bone.Translation);
+        //         // Bone_Node.Item2.SetBoneEuler(Bone.Translation, Bone.Rotation, Bone.Scale);
+        //         var rotVec = new Vector3 (RadToDegConstant * Bone.Rotation.X,
+        //             RadToDegConstant * Bone.Rotation.Y, RadToDegConstant * Bone.Rotation.Z);
+        //         Bone_Node.Item2.Rotation = rotVec;
+        //         Bone_Node.Item2.Scale = VectorExtensions.CastNumericsVector3 (Bone.Scale);
+        //
+        //
+        //         foreach (H3DBone B in h3DModel.Skeleton)
+        //         {
+        //             if (B.ParentIndex == -1) continue;
+        //
+        //             H3DBone ParentBone = h3DModel.Skeleton[B.ParentIndex];
+        //
+        //             if (ParentBone == Bone)
+        //             {
+        //                 SkeletonUtils.SkeletonNode Node = new SkeletonUtils.SkeletonNode();
+        //
+        //                 ChildBones.Enqueue(Tuple.Create(B, Node));
+        //
+        //                 if (Bone_Node.Item2.Nodes == null) Bone_Node.Item2.Nodes = new List<SkeletonUtils.SkeletonNode>();
+        //
+        //                 Bone_Node.Item2.Nodes.Add(Node);
+        //             }
+        //         }
+        //     }
+        //
+        //     SpawnBones(RootNode, sceneGo, emptyGo);
+        // }
+        //
+        //
+        
         
         foreach (var h3DMesh in h3DModel.Meshes) {
             
@@ -171,6 +180,31 @@ public class RawImporter2 : MonoBehaviour
     
     private const float RadToDegConstant = (float)((1 / Math.PI) * 180);
 
+    public static void SpawnBones (DAENode root, GameObject parentGo, GameObject nodeGo)
+    {
+        var rootGo = Instantiate (nodeGo, parentGo.transform);
+        rootGo.transform.localScale = DAEUtils.ToUnityVector3 (root.Scale);
+        
+        var postionAxises = new Vector3 (-1, 1, 1);
+        var postionVector =  DAEUtils.ToUnityVector3 (root.Translation);
+        rootGo.transform.localPosition = new Vector3 {
+            x = postionAxises.x * postionVector.x,
+            y = postionAxises.y * postionVector.y,
+            z = postionAxises.z * postionVector.z
+        };
+        foreach (var singleRotation in root.Rotation) {
+            var rotationVector = DAEUtils.GetAxisFromRotation (singleRotation);
+            rootGo.transform.Rotate (rotationVector, DAEUtils.GetScalarFromRotation (singleRotation));
+        }
+        
+        rootGo.name = root.name;
+        if (root.Nodes == null)
+            return;
+        foreach (var singleNode in root.Nodes) {
+            SpawnBones (singleNode, rootGo, nodeGo);
+        }
+    }
+    
     public static void SpawnBones (SkeletonUtils.SkeletonNode root, GameObject parentGo, GameObject nodeGo)
     {
         do {
