@@ -23,22 +23,7 @@ namespace SPICA.Formats.Generic.COLLADA
             float.TryParse (splits[2], out var z);
             return new UnityEngine.Vector3(x,y,z);
         }
-        
-        public static UnityEngine.Vector3 GetAxisFromRotation(DAEVector4 daeVector3)
-        {
-            var splits = daeVector3.data.Split (' ');
-            float.TryParse (splits[0], out var x);
-            float.TryParse (splits[1], out var y);
-            float.TryParse (splits[2], out var z);
-            return new UnityEngine.Vector3(x * -1,y * -1,z * -1);
-        }
 
-        public static float GetScalarFromRotation (DAEVector4 daeVector4)
-        {
-            float.TryParse (daeVector4.data.Split (' ')[3], out var w);
-            return w;
-        }
-        
         public static float RadToDeg(float Radians)
         {
             return Radians * RadToDegConstant;
