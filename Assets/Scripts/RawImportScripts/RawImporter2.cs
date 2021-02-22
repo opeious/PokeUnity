@@ -64,68 +64,11 @@ public class RawImporter2 : MonoBehaviour
         
         SpawnBones (test.library_visual_scenes[0].node[0], sceneGo, emptyGo);
 
-        var RootBoneId = string.Empty;
-        //
-        // if ((h3DModel.Skeleton?.Count ?? 0) > 0)
-        // {
-        //     
-        //     var ChildBones = new Queue<Tuple<H3DBone, SkeletonUtils.SkeletonNode>>();
-        //
-        //     var RootNode = new SkeletonUtils.SkeletonNode();
-        //
-        //     ChildBones.Enqueue(Tuple.Create(h3DModel.Skeleton[0], RootNode));
-        //
-        //     RootBoneId = $"#{h3DModel.Skeleton[0].Name}_bone_id";
-        //
-        //     while (ChildBones.Count > 0)
-        //     {
-        //         var Bone_Node = ChildBones.Dequeue();
-        //
-        //         var Bone = Bone_Node.Item1;
-        //
-        //         Bone_Node.Item2.id   = $"{Bone.Name}_bone_id";
-        //         Bone_Node.Item2.name = Bone.Name;
-        //         Bone_Node.Item2.sid  = Bone.Name;
-        //         Bone_Node.Item2.type = SkeletonUtils.MeshUtilsSkeletonNodeType.JOINT;
-        //         Bone_Node.Item2.Translation =  VectorExtensions.CastNumericsVector3 (Bone.Translation);
-        //         // Bone_Node.Item2.SetBoneEuler(Bone.Translation, Bone.Rotation, Bone.Scale);
-        //         var rotVec = new Vector3 (RadToDegConstant * Bone.Rotation.X,
-        //             RadToDegConstant * Bone.Rotation.Y, RadToDegConstant * Bone.Rotation.Z);
-        //         Bone_Node.Item2.Rotation = rotVec;
-        //         Bone_Node.Item2.Scale = VectorExtensions.CastNumericsVector3 (Bone.Scale);
-        //
-        //
-        //         foreach (H3DBone B in h3DModel.Skeleton)
-        //         {
-        //             if (B.ParentIndex == -1) continue;
-        //
-        //             H3DBone ParentBone = h3DModel.Skeleton[B.ParentIndex];
-        //
-        //             if (ParentBone == Bone)
-        //             {
-        //                 SkeletonUtils.SkeletonNode Node = new SkeletonUtils.SkeletonNode();
-        //
-        //                 ChildBones.Enqueue(Tuple.Create(B, Node));
-        //
-        //                 if (Bone_Node.Item2.Nodes == null) Bone_Node.Item2.Nodes = new List<SkeletonUtils.SkeletonNode>();
-        //
-        //                 Bone_Node.Item2.Nodes.Add(Node);
-        //             }
-        //         }
-        //     }
-        //
-        //     SpawnBones(RootNode, sceneGo, emptyGo);
-        // }
-        //
-        //
-        
-        
         foreach (var h3DMesh in h3DModel.Meshes) {
-            
-            //TODO: Skeleton import
-            
             var modelGo = Instantiate (emptyGo, sceneGo.transform);
-            modelGo.name = h3DModel.Name + meshCounter;
+            int indexOfMesh = h3DModel.Meshes.IndexOf (h3DMesh);
+            modelGo.name = test.library_controllers[indexOfMesh].name.Replace ("_ctrl", "");
+
             var meshFilter = modelGo.AddComponent<MeshFilter> ();
             var mesh = new Mesh ();
             var unityMeshVertices = new List<Vector3> ();
@@ -205,26 +148,6 @@ public class RawImporter2 : MonoBehaviour
         }
     }
     
-    public static void SpawnBones (SkeletonUtils.SkeletonNode root, GameObject parentGo, GameObject nodeGo)
-    {
-        do {
-            var rotQuat = Quaternion.Euler (root.Rotation);
-            var rootGo = Instantiate (nodeGo, parentGo.transform);
-            rootGo.transform.position = root.Translation;
-            rootGo.transform.Rotate (new Vector3 (1,0,0), root.Rotation.x);
-            rootGo.transform.Rotate (new Vector3 (0,1,0), root.Rotation.y);
-            rootGo.transform.Rotate (new Vector3 (0,0,1), root.Rotation.z);
-            
-            rootGo.name = root.name;
-            if (root.Nodes != null) {
-                foreach (var node in root.Nodes) {
-                    SpawnBones (node, rootGo, nodeGo);
-                }
-                root.Nodes = null;   
-            }
-        } while (root.Nodes != null);
-    }
-
     public static void SaveMeshAtPath (Mesh mesh, string path)
     {
         if (File.Exists (path)) {
