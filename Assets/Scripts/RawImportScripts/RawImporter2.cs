@@ -60,63 +60,66 @@ public class RawImporter2 : MonoBehaviour
         //TODO: Material setup
         var whiteMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Scripts/RawImportScripts/TestMat.mat");
 
+        //For making files
         var meshCounter = 0;
         
         SpawnBones (test.library_visual_scenes[0].node[0], sceneGo, emptyGo);
 
         foreach (var h3DMesh in h3DModel.Meshes) {
-            var modelGo = Instantiate (emptyGo, sceneGo.transform);
-            int indexOfMesh = h3DModel.Meshes.IndexOf (h3DMesh);
-            modelGo.name = test.library_controllers[indexOfMesh].name.Replace ("_ctrl", "");
-
-            var meshFilter = modelGo.AddComponent<MeshFilter> ();
-            var mesh = new Mesh ();
-            var unityMeshVertices = new List<Vector3> ();
-            var unityMeshTangents = new List<Vector4> ();
-            var unityMeshNormals = new List<Vector3> ();
-            var unityMeshUV = new List<Vector2> ();
-            var unityMeshTriangles = new List<ushort> ();
-            var unityVertexBones = new List<BoneWeight> ();
-
-            var picaVertices = h3DMesh.GetVertices ();
-            unityMeshVertices.AddRange (MeshUtils.PicaToUnityVertex (picaVertices));
-            unityMeshNormals.AddRange (MeshUtils.PicaToUnityNormals (picaVertices));
-            unityMeshTangents.AddRange (MeshUtils.PicaToUnityTangents (picaVertices));
-            unityMeshUV.AddRange (MeshUtils.PicaToUnityUV (picaVertices));
-            unityVertexBones.AddRange (MeshUtils.PicaToUnityBoneWeights (picaVertices));
+            if (h3DMesh.Type == H3DMeshType.Silhouette) continue;
             
-            List<BoneWeight1> currentMeshBoneWeights = new List<BoneWeight1> ();
+            var picaVertices = MeshTransform.GetWorldSpaceVertices (h3DModel.Skeleton, h3DMesh);
+            foreach (var subMesh in h3DMesh.SubMeshes) {
+                var subMeshName = h3DModel.MeshNodesTree.Find (h3DMesh.NodeIndex) + "_" +
+                                  h3DModel.Meshes.IndexOf (h3DMesh) + "_" + h3DMesh.SubMeshes.IndexOf (subMesh);
+                var modelGo = Instantiate (emptyGo, sceneGo.transform);
+                modelGo.name = subMeshName;
+                
+                var meshFilter = modelGo.AddComponent<MeshFilter> ();
+                var mesh = new Mesh ();
+
+                var unityMeshPositions = new List<Vector3> ();
+                var unityMeshTangents = new List<Vector4> ();
+                var unityMeshNormals = new List<Vector3> ();
+                var unityMeshUV = new List<Vector2> ();
+                var unityMeshTriangles = new List<ushort> ();
+                var unityVertexBones = new List<BoneWeight> ();
+
+                
+                unityMeshPositions.AddRange (MeshUtils.PicaToUnityVertex (picaVertices));
+                unityMeshNormals.AddRange (MeshUtils.PicaToUnityNormals (picaVertices));
+                unityMeshTangents.AddRange (MeshUtils.PicaToUnityTangents (picaVertices));
+                unityMeshUV.AddRange (MeshUtils.PicaToUnityUV (picaVertices));
+                unityMeshTriangles.AddRange (subMesh.Indices);
+                
+                unityVertexBones.AddRange (MeshUtils.PicaToUnityBoneWeights (picaVertices));
+                
+                mesh.subMeshCount = 1;
+                mesh.vertices = unityMeshPositions.ToArray ();
+                mesh.normals = unityMeshNormals.ToArray ();
+                mesh.tangents = unityMeshTangents.ToArray ();
+                mesh.uv = unityMeshUV.ToArray ();
+                mesh.SetTriangles (unityMeshTriangles ,0);
             
-            foreach (var subH3DMesh in h3DMesh.SubMeshes) {
-                unityMeshTriangles.AddRange (subH3DMesh.Indices);
+                mesh.boneWeights = unityVertexBones.ToArray (); 
+
+                var meshRenderer = modelGo.AddComponent<SkinnedMeshRenderer> ();
+                meshRenderer.quality = SkinQuality.Bone4;
+                meshRenderer.material = whiteMat;
+                meshRenderer.sharedMesh = mesh;
+                var bonesTransform = sceneGo.transform.GetChild (0).GetComponentsInChildren<Transform> ();
+                meshRenderer.rootBone = bonesTransform[0];
+                meshRenderer.bones = bonesTransform;
+                meshRenderer.updateWhenOffscreen = true;
+                var bindPoses = new List<Matrix4x4> ();
+                for (int i = 0; i < bonesTransform.Length; i++) {
+                    bindPoses.Add (bonesTransform[i].worldToLocalMatrix * bonesTransform[0].localToWorldMatrix);
+                }
+                mesh.bindposes = bindPoses.ToArray ();
+            
+                meshFilter.sharedMesh = mesh;
+                SaveMeshAtPath (mesh, "Assets/Raw/test/test" + meshCounter++ + ".asset");
             }
-
-            
-            mesh.subMeshCount = 1;
-            mesh.vertices = unityMeshVertices.ToArray ();
-            mesh.normals = unityMeshNormals.ToArray ();
-            mesh.tangents = unityMeshTangents.ToArray ();
-            mesh.uv = unityMeshUV.ToArray ();
-            mesh.SetTriangles (unityMeshTriangles ,0);
-            
-            mesh.boneWeights = unityVertexBones.ToArray (); 
-
-            var meshRenderer = modelGo.AddComponent<SkinnedMeshRenderer> ();
-            meshRenderer.quality = SkinQuality.Bone4;
-            meshRenderer.material = whiteMat;
-            meshRenderer.sharedMesh = mesh;
-            var bonesTransform = sceneGo.transform.GetChild (0).GetComponentsInChildren<Transform> ();
-            meshRenderer.rootBone = bonesTransform[0];
-            meshRenderer.bones = bonesTransform;
-            meshRenderer.updateWhenOffscreen = true;
-            var bindPoses = new List<Matrix4x4> ();
-            for (int i = 0; i < bonesTransform.Length; i++) {
-                bindPoses.Add (bonesTransform[i].worldToLocalMatrix * bonesTransform[0].localToWorldMatrix);
-            }
-            mesh.bindposes = bindPoses.ToArray ();
-            
-            meshFilter.sharedMesh = mesh;
-            SaveMeshAtPath (mesh, "Assets/Raw/test/test" + meshCounter++ + ".asset");
         }
         DestroyImmediate (emptyGo);
     }
