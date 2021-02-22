@@ -8,6 +8,7 @@ using SPICA.Formats.CtrH3D;
 using SPICA.Formats.CtrH3D.Model;
 using SPICA.Formats.CtrH3D.Model.Mesh;
 using SPICA.Formats.Generic.COLLADA;
+using SPICA.PICA.Commands;
 using SPICA.PICA.Converters;
 using SPICA.WinForms.Formats;
 using Unity.Collections;
@@ -46,25 +47,88 @@ public class RawImporter2 : MonoBehaviour
 
     private static void GenerateTextureFiles (H3D h3DScene)
     {
-        foreach (var h3DTexture in h3DScene.Textures) {
+        foreach (var h3DMaterial in h3DScene.Models[0].Materials) {
             var color = Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
-            var width = h3DTexture.Width;
-            var height = h3DTexture.Height;
-            var texture = new Texture2D (width, height) {name = h3DTexture.Name};
+            var width = h3DMaterial.Texture0.Width;
+            var height = h3DMaterial.Texture0.Height;
+            // h3DTexture.Format\
+            var colorArray = new List<Color32> ();
+            var buffer = h3DMaterial.Texture0.ToRGBA ();
+            for (int i = 0; i < buffer.Length; i += 4) {
+                var col = new Color32 ((byte)buffer[i + 0], buffer[i + 1], buffer[i + 2],
+                    buffer[i + 3]);
+                colorArray.Add (col);
+            }
+            var texture = new Texture2D (width, height, TextureFormat.ARGB32, false) {name = h3DMaterial.Name + "m"};
+            int colorCounter = 0;
             for (int y = 0; y < texture.height; y++)
             {
                 for (int x = 0; x < texture.width; x++)
                 {
                     // color = ((x & y) != 0 ? Color.white : Color.gray);
-                    texture.SetPixel(x, y, color);
+                    texture.SetPixel(x, y, colorArray[colorCounter++]);
                 }
             }
+
+            // texture.LoadImage (h3DTexture.RawBuffer);
+            // texture.LoadRawTextureData (h3DTexture.RawBuffer);
+            texture.Apply();
+            File.WriteAllBytes ("Assets/Raw/test/" + texture.name + ".png", texture.EncodeToPNG ());
+        }
+        
+        var textureDict = new Dictionary<string, Texture2D> ();
+        foreach (var h3DTexture in h3DScene.Textures) {
+            var color = Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+            var width = h3DTexture.Width;
+            var height = h3DTexture.Height;
+
+            var colorArray = new List<Color32> ();
+            var buffer = h3DTexture.ToRGBA ();
+            for (var i = 0; i < buffer.Length; i += 4) {
+                var col = new Color32 ((byte)buffer[i + 0], buffer[i + 1], buffer[i + 2],
+                    buffer[i + 3]);
+                colorArray.Add (col);
+            }
+            var texture = new Texture2D (width, height, TextureFormat.ARGB32, false) {name = h3DTexture.Name};
+            var colorCounter = 0;
+            for (var y = 0; y < texture.height; y++)
+            {
+                for (var x = 0; x < texture.width; x++)
+                {
+                    texture.SetPixel(x, y, colorArray[colorCounter++]);
+                }
+            }
+
             texture.Apply();
             File.WriteAllBytes ("Assets/Raw/test/" + texture.name + ".png", texture.EncodeToPNG ());
         }
         AssetDatabase.Refresh();
     }
 
+    
+    // public static class TextureExtensions {
+    //     public static TextureFormat ToGFTextureFormat(this TextureFormat Format) {
+    //         switch (Format) {
+    //             case PICATextureFormat.RGB565: return TextureFormat.RGB565;
+    //             case PICATextureFormat.RGB8: return TextureFormat.RGB8;
+    //             case PICATextureFormat.RGBA8: return TextureFormat.RGBA8;
+    //             case PICATextureFormat.RGBA4: return TextureFormat.RGBA4;
+    //             case PICATextureFormat.RGBA5551: return TextureFormat.RGBA5551;
+    //             case PICATextureFormat.LA8: return TextureFormat.LA8;
+    //             case PICATextureFormat.HiLo8: return TextureFormat.HiLo8;
+    //             case PICATextureFormat.L8: return TextureFormat.L8;
+    //             case PICATextureFormat.A8: return TextureFormat.A8;
+    //             case PICATextureFormat.LA4: return TextureFormat.LA4;
+    //             case PICATextureFormat.L4: return TextureFormat.L4;
+    //             case PICATextureFormat.A4: return TextureFormat.A4;
+    //             case PICATextureFormat.ETC1: return TextureFormat.ETC1;
+    //             case PICATextureFormat.ETC1A4: return TextureFormat.ETC1A4;
+    //
+    //             default: throw new ArgumentException("Invalid format!");
+    //         }
+    //     }
+    // }
+    
     private static void GenerateMeshInUnityScene (H3D h3DScene)
     {
         //To be removed after testing
