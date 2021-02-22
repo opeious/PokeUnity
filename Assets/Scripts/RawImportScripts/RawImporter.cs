@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using JetBrains.Annotations;
 using SPICA.Formats.Common;
 using SPICA.Formats.CtrH3D;
 using SPICA.Formats.CtrH3D.Model;
@@ -16,31 +17,31 @@ using UnityEngine;
 public class RawImporter2 : MonoBehaviour
 {
     [MenuItem("MyMenu/Testing")]
-    static void TestImportRaw()
+    private static void TestImportRaw()
     {
         var scene = new H3D();
 
-        int OpenFiles = 0;
+        var openFiles = 0;
 
-        var FileNames = new []{"Assets/Raw/Models/0011 - Squirtle.bin"};
-        foreach (string FileName in FileNames)
+        var fileNames = new []{"Assets/Raw/Models/0011 - Squirtle.bin"};
+        foreach (var fileName in fileNames)
         {
-            H3DDict<H3DBone> Skeleton = null;
+            H3DDict<H3DBone> skeleton = null;
 
-            if (scene.Models.Count > 0) Skeleton = scene.Models[0].Skeleton;
+            if (scene.Models.Count > 0) skeleton = scene.Models[0].Skeleton;
 
-            H3D Data = FormatIdentifier.IdentifyAndOpen(FileName, Skeleton);
+            var data = FormatIdentifier.IdentifyAndOpen(fileName, skeleton);
 
-            if (Data != null)
+            if (data != null)
             {
-                scene.Merge(Data);
+                scene.Merge(data);
             }
         }
         
         GenerateMeshInUnityScene (scene);
     }
 
-    static void GenerateMeshInUnityScene (H3D h3DScene)
+    private static void GenerateMeshInUnityScene (H3D h3DScene)
     {
         //To be removed after testing
         var toBeDestroyed = GameObject.Find ("Test");
@@ -104,18 +105,23 @@ public class RawImporter2 : MonoBehaviour
                             else
                                 bIndex = 0;
 
-                            if (boneIndexInVertex == 0) {
-                                vertexBoneWeight.weight0 = weight;
-                                vertexBoneWeight.boneIndex0 = bIndex;
-                            } else if (boneIndexInVertex == 1) {
-                                vertexBoneWeight.weight1 = weight;
-                                vertexBoneWeight.boneIndex1 = bIndex;
-                            } else if (boneIndexInVertex == 2) {
-                                vertexBoneWeight.weight2 = weight;
-                                vertexBoneWeight.boneIndex2 = bIndex;
-                            } else if (boneIndexInVertex == 3) {
-                                vertexBoneWeight.weight3 = weight;
-                                vertexBoneWeight.boneIndex3 = bIndex;
+                            switch (boneIndexInVertex) {
+                                case 0:
+                                    vertexBoneWeight.weight0 = weight;
+                                    vertexBoneWeight.boneIndex0 = bIndex;
+                                    break;
+                                case 1:
+                                    vertexBoneWeight.weight1 = weight;
+                                    vertexBoneWeight.boneIndex1 = bIndex;
+                                    break;
+                                case 2:
+                                    vertexBoneWeight.weight2 = weight;
+                                    vertexBoneWeight.boneIndex2 = bIndex;
+                                    break;
+                                case 3:
+                                    vertexBoneWeight.weight3 = weight;
+                                    vertexBoneWeight.boneIndex3 = bIndex;
+                                    break;
                             }
                         }
                         unityVertexBones.Add (vertexBoneWeight);
@@ -155,11 +161,8 @@ public class RawImporter2 : MonoBehaviour
                 meshRenderer.rootBone = bonesTransform[0];
                 meshRenderer.bones = bonesTransform;
                 meshRenderer.updateWhenOffscreen = true;
-                var bindPoses = new List<Matrix4x4> ();
-                for (int i = 0; i < bonesTransform.Length; i++) {
-                    bindPoses.Add (bonesTransform[i].worldToLocalMatrix * bonesTransform[0].localToWorldMatrix);
-                }
-                mesh.bindposes = bindPoses.ToArray ();
+                mesh.bindposes = bonesTransform
+                    .Select (t => t.worldToLocalMatrix * bonesTransform[0].localToWorldMatrix).ToArray ();
             
                 meshFilter.sharedMesh = mesh;
                 SaveMeshAtPath (mesh, "Assets/Raw/test/" + subMeshName + ".asset");
@@ -172,17 +175,17 @@ public class RawImporter2 : MonoBehaviour
     
     private const float RadToDegConstant = (float)((1 / Math.PI) * 180);
 
-    public static void SpawnBones (SkeletonUtils.SkeletonNode root, GameObject parentGo, GameObject nodeGo)
+    private static void SpawnBones (SkeletonUtils.SkeletonNode root, GameObject parentGo, GameObject nodeGo)
     {
         var rootGo = Instantiate (nodeGo, parentGo.transform);
         rootGo.transform.localScale = root.Scale;
-        
-        var postionAxises = new Vector3 (-1, 1, 1);
-        var postionVector = root.Translation;
+
+        var positionAxes = new Vector3 (-1, 1, 1);
+        var positionVector = root.Translation;
         rootGo.transform.localPosition = new Vector3 {
-            x = postionAxises.x * postionVector.x,
-            y = postionAxises.y * postionVector.y,
-            z = postionAxises.z * postionVector.z
+            x = positionAxes.x * positionVector.x,
+            y = positionAxes.y * positionVector.y,
+            z = positionAxes.z * positionVector.z
         };
         foreach (var singleRotation in root.Rotation) {
             var rotationVector = VectorExtensions.GetAxisFromRotation (singleRotation);
@@ -196,9 +199,10 @@ public class RawImporter2 : MonoBehaviour
             SpawnBones (singleNode, rootGo, nodeGo);
         }
     }
-    
-    public static void SaveMeshAtPath (Mesh mesh, string path)
+
+    private static void SaveMeshAtPath ([NotNull] Mesh mesh, string path)
     {
+        if (mesh == null) throw new ArgumentNullException (nameof(mesh));
         if (File.Exists (path)) {
             File.Delete (path);
         }
