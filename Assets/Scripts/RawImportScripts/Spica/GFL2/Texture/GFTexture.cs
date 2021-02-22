@@ -35,9 +35,8 @@ namespace SPICA.Formats.GFL2.Texture
             uint TextureLength = Reader.ReadUInt32();
 
             Reader.BaseStream.Seek(0xc, SeekOrigin.Current); //Padding? Always zero it seems
-            
+
             Name = Reader.ReadPaddedString(0x40);
-            // Name = Reader.ReadString ();
 
             Width      = Reader.ReadUInt16();
             Height     = Reader.ReadUInt16();
@@ -68,8 +67,8 @@ namespace SPICA.Formats.GFL2.Texture
 			Writer.Write(1);
 			new GFSection("texture", (uint)RawBuffer.Length + 0x68).Write(Writer);
 			Writer.Write(RawBuffer.Length);
-			// Writer.WritePaddedString("", 0x0C);
-			// Writer.WritePaddedString(Name, 0x40);
+			Writer.WritePaddedString("", 0x0C);
+			Writer.WritePaddedString(Name, 0x40);
 			Writer.Write(Width);
 			Writer.Write(Height);
 			Writer.Write((Int16)Format);

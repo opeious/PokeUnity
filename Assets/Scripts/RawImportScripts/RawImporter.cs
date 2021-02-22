@@ -13,6 +13,8 @@ using SPICA.WinForms.Formats;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
+using UnityEditor.Animations.Rigging;
+using Random = UnityEngine.Random;
 
 public class RawImporter2 : MonoBehaviour
 {
@@ -23,7 +25,7 @@ public class RawImporter2 : MonoBehaviour
 
         var openFiles = 0;
 
-        var fileNames = new []{"Assets/Raw/Models/0011 - Squirtle.bin"};
+        var fileNames = new []{"Assets/Raw/Models/0001 - Bulbasaur.bin","Assets/Raw/Textures/0001 - Bulbasaur.bin"};
         foreach (var fileName in fileNames)
         {
             H3DDict<H3DBone> skeleton = null;
@@ -39,6 +41,28 @@ public class RawImporter2 : MonoBehaviour
         }
         
         GenerateMeshInUnityScene (scene);
+        GenerateTextureFiles (scene);
+    }
+
+    private static void GenerateTextureFiles (H3D h3DScene)
+    {
+        foreach (var h3DTexture in h3DScene.Textures) {
+            var color = Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+            var width = h3DTexture.Width;
+            var height = h3DTexture.Height;
+            var texture = new Texture2D (width, height) {name = h3DTexture.Name};
+            for (int y = 0; y < texture.height; y++)
+            {
+                for (int x = 0; x < texture.width; x++)
+                {
+                    // color = ((x & y) != 0 ? Color.white : Color.gray);
+                    texture.SetPixel(x, y, color);
+                }
+            }
+            texture.Apply();
+            File.WriteAllBytes ("Assets/Raw/test/" + texture.name + ".png", texture.EncodeToPNG ());
+        }
+        AssetDatabase.Refresh();
     }
 
     private static void GenerateMeshInUnityScene (H3D h3DScene)
