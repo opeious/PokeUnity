@@ -10,7 +10,7 @@ public class PokemonTextureImporter : AssetPostprocessor
     {
         var textureImport = assetImporter as TextureImporter;
         if (textureImport != null) {
-            textureImport.maxTextureSize = 256;
+            textureImport.maxTextureSize = 512;
         }
     }
 }

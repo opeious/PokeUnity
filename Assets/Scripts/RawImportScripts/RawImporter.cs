@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ExtensionMethods;
 using JetBrains.Annotations;
 using SPICA.Formats.Common;
 using SPICA.Formats.CtrH3D;
@@ -47,35 +48,7 @@ public class RawImporter2 : MonoBehaviour
 
     private static void GenerateTextureFiles (H3D h3DScene)
     {
-        foreach (var h3DMaterial in h3DScene.Models[0].Materials) {
-            var color = Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
-            var width = h3DMaterial.Texture0.Width;
-            var height = h3DMaterial.Texture0.Height;
-            // h3DTexture.Format\
-            var colorArray = new List<Color32> ();
-            var buffer = h3DMaterial.Texture0.ToRGBA ();
-            for (int i = 0; i < buffer.Length; i += 4) {
-                var col = new Color32 ((byte)buffer[i + 0], buffer[i + 1], buffer[i + 2],
-                    buffer[i + 3]);
-                colorArray.Add (col);
-            }
-            var texture = new Texture2D (width, height, TextureFormat.ARGB32, false) {name = h3DMaterial.Name + "m"};
-            int colorCounter = 0;
-            for (int y = 0; y < texture.height; y++)
-            {
-                for (int x = 0; x < texture.width; x++)
-                {
-                    // color = ((x & y) != 0 ? Color.white : Color.gray);
-                    texture.SetPixel(x, y, colorArray[colorCounter++]);
-                }
-            }
-
-            // texture.LoadImage (h3DTexture.RawBuffer);
-            // texture.LoadRawTextureData (h3DTexture.RawBuffer);
-            texture.Apply();
-            File.WriteAllBytes ("Assets/Raw/test/" + texture.name + ".png", texture.EncodeToPNG ());
-        }
-        
+        //Get raw texture data from Scene
         var textureDict = new Dictionary<string, Texture2D> ();
         foreach (var h3DTexture in h3DScene.Textures) {
             var color = Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
@@ -100,12 +73,45 @@ public class RawImporter2 : MonoBehaviour
             }
 
             texture.Apply();
-            File.WriteAllBytes ("Assets/Raw/test/" + texture.name + ".png", texture.EncodeToPNG ());
+            textureDict.Add (texture.name, texture);
+        }
+        
+        //For mirroring
+        var finalDict = new Dictionary<string, Texture2D> ();
+        foreach (var h3DMaterial in h3DScene.Models[0].Materials) {
+            if (textureDict.Count == 0) break;
+
+            var textureNames = h3DMaterial.TextureNames ();
+
+            foreach (var textureName in textureNames.Where (textureName => !finalDict.ContainsKey (textureName))) {
+                var textureIndex = h3DMaterial.GetTextureIndex (textureName);
+                var textureCoord = h3DMaterial.MaterialParams.TextureCoords[textureIndex];
+                if (textureCoord.Scale.X * textureCoord.Scale.Y <= 1) continue;
+                var originalTexture = textureDict[textureName];
+                var newWidth = originalTexture.width * textureCoord.Scale.X;
+                var newHeight = originalTexture.width * textureCoord.Scale.Y;
+                var newTexture = new Texture2D ((int)newWidth, (int)newHeight, TextureFormat.ARGB32, false) {name = textureName};
+                if (textureCoord.Scale.X > 1) {
+                    // Graphics.CopyTexture (originalTexture, 0, 0, 0, 0, originalTexture.width, originalTexture.height,
+                    //     newTexture, 0, 0, originalTexture.width, 0);
+                    Graphics.CopyTexture (originalTexture, 0, 0, 0, 0, originalTexture.width, originalTexture.height,
+                        newTexture, 0, 0, 0, 0);   
+                }
+                
+                finalDict.Add (textureName + "m", newTexture);
+            }
+        }
+
+        foreach (var kvp in textureDict) {
+            File.WriteAllBytes ("Assets/Raw/test/" + kvp.Key + ".png", kvp.Value.EncodeToPNG ());
+        }
+        foreach (var kvp in finalDict) {
+            File.WriteAllBytes ("Assets/Raw/test/m" + kvp.Key + ".png", kvp.Value.EncodeToPNG ());
         }
         AssetDatabase.Refresh();
     }
 
-    
+
     // public static class TextureExtensions {
     //     public static TextureFormat ToGFTextureFormat(this TextureFormat Format) {
     //         switch (Format) {

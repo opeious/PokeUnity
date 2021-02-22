@@ -1,8 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
+using SPICA.Formats.CtrH3D;
 using SPICA.Formats.CtrH3D.Model;
+using SPICA.Formats.CtrH3D.Model.Material;
 using SPICA.PICA.Converters;
 using UnityEngine;
+
+namespace ExtensionMethods
+{
+    public static class H3DMaterialExtensions
+    {
+        public static int GetTextureIndex (this H3DMaterial h3DMaterial, string name)
+        {
+            if (h3DMaterial.Texture0Name == name) {
+                return 0;
+            }
+            if (h3DMaterial.Texture1Name == name) {
+                return 1;
+            }
+            return 2;
+        }
+        
+        public static List<string> TextureNames (this H3DMaterial h3DMaterial) => new List<string> {
+            h3DMaterial.Texture0Name,h3DMaterial.Texture1Name,h3DMaterial.Texture2Name,
+        };
+        
+    }
+}
+
+public class TextureUtils
+{
+    
+}
 
 public class MeshUtils
 {
