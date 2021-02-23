@@ -23,27 +23,44 @@ public class RawImporter2 : MonoBehaviour
     [MenuItem("MyMenu/Testing")]
     private static void TestImportRaw()
     {
-        var scene = new H3D();
+        var h3DScene = new H3D();
 
         var openFiles = 0;
 
-        var fileNames = new []{"Assets/Raw/Models/0001 - Bulbasaur.bin","Assets/Raw/Textures/0001 - Bulbasaur.bin"};
+        var fileNames = new []{"Assets/Raw/Textures/0195 - Flareon.bin","Assets/Raw/Models/0195 - Flareon.bin"};
         foreach (var fileName in fileNames)
         {
             H3DDict<H3DBone> skeleton = null;
 
-            if (scene.Models.Count > 0) skeleton = scene.Models[0].Skeleton;
+            if (h3DScene.Models.Count > 0) skeleton = h3DScene.Models[0].Skeleton;
 
             var data = FormatIdentifier.IdentifyAndOpen(fileName, skeleton);
 
             if (data != null)
             {
-                scene.Merge(data);
+                h3DScene.Merge(data);
             }
         }
         
-        GenerateMeshInUnityScene (scene);
-        GenerateTextureFiles (scene);
+        GenerateTextureFiles (h3DScene);
+        var meshDict = GenerateMeshInUnityScene (h3DScene);
+        var matDict = GenerateMaterialFiles (h3DScene);
+        AddMaterialsToGeneratedMeshes (meshDict, matDict, h3DScene);
+
+    }
+
+    private static void AddMaterialsToGeneratedMeshes (Dictionary<string, SkinnedMeshRenderer> meshDict, Dictionary<string, Material> matDict, H3D h3dScene)
+    {
+        var h3DModel = h3dScene.Models[0];
+        foreach (var h3DMesh in h3DModel.Meshes) {
+            foreach (var h3DSubMesh in h3DMesh.SubMeshes) {
+                var h3dSubMeshName = h3DModel.MeshNodesTree.Find (h3DMesh.NodeIndex) + "_" +
+                    h3DModel.Meshes.IndexOf (h3DMesh) + "_" + h3DMesh.SubMeshes.IndexOf (h3DSubMesh);
+                var h3dMaterial = h3DModel.Materials[h3DMesh.MaterialIndex];
+                meshDict[h3dSubMeshName].sharedMaterial = matDict[h3dMaterial.Name];
+            }
+        }
+        AssetDatabase.Refresh();
     }
 
     private static void GenerateTextureFiles (H3D h3DScene)
@@ -84,21 +101,27 @@ public class RawImporter2 : MonoBehaviour
             var textureNames = h3DMaterial.TextureNames ();
 
             foreach (var textureName in textureNames.Where (textureName => !finalDict.ContainsKey (textureName))) {
+                Debug.LogError (h3DMaterial.Name + "," + textureName);
+
                 var textureIndex = h3DMaterial.GetTextureIndex (textureName);
                 var textureCoord = h3DMaterial.MaterialParams.TextureCoords[textureIndex];
-                if (textureCoord.Scale.X * textureCoord.Scale.Y <= 1) continue;
                 var originalTexture = textureDict[textureName];
-                var newWidth = originalTexture.width * textureCoord.Scale.X;
-                var newHeight = originalTexture.width * textureCoord.Scale.Y;
+                if (Math.Abs(textureCoord.Scale.X * textureCoord.Scale.Y) <= 1) {
+                    finalDict.Add (textureName, originalTexture);
+                    continue;
+                }
+                var newWidth = originalTexture.width * Math.Abs(textureCoord.Scale.X);
+                var newHeight = originalTexture.height * Math.Abs(textureCoord.Scale.Y);
                 var newTexture = new Texture2D ((int)newWidth, (int)newHeight, TextureFormat.ARGB32, false) {name = textureName};
-                if (textureCoord.Scale.X > 1) {
+                if (Math.Abs(textureCoord.Scale.X) > 1) {
                     // Graphics.CopyTexture (originalTexture, 0, 0, 0, 0, originalTexture.width, originalTexture.height,
                     //     newTexture, 0, 0, originalTexture.width, 0);
                     Graphics.CopyTexture (originalTexture, 0, 0, 0, 0, originalTexture.width, originalTexture.height,
                         newTexture, 0, 0, 0, 0);   
+                    Graphics.CopyTexture (TextureUtils.FlipTexture (originalTexture), 0, 0, 0, 0, originalTexture.width, originalTexture.height,
+                        newTexture, 0, 0, originalTexture.width, 0);   
                 }
-                
-                finalDict.Add (textureName + "m", newTexture);
+                finalDict.Add (textureName, newTexture);
             }
         }
 
@@ -108,7 +131,33 @@ public class RawImporter2 : MonoBehaviour
         foreach (var kvp in finalDict) {
             File.WriteAllBytes ("Assets/Raw/test/m" + kvp.Key + ".png", kvp.Value.EncodeToPNG ());
         }
+        
         AssetDatabase.Refresh();
+    }
+    
+            
+    private static Dictionary<string, Material> GenerateMaterialFiles (H3D h3DScene)
+    {
+        string PATH = "Assets/Raw/test/m";
+        var matDict = new Dictionary<string, Material> ();
+        foreach (var h3dMaterial in h3DScene.Models[0].Materials) {
+            Material newMaterial = new Material (Shader.Find ("Universal Render Pipeline/Lit"));
+
+            Texture2D mainTexture = (Texture2D) AssetDatabase.LoadAssetAtPath (PATH + h3dMaterial.Texture0Name + ".png", typeof(Texture2D));
+            newMaterial.SetTexture ("_BaseMap", mainTexture);
+            newMaterial.mainTexture = mainTexture;
+            
+            Texture2D normalTexture = (Texture2D) AssetDatabase.LoadAssetAtPath (PATH + h3dMaterial.Texture2Name + ".png", typeof(Texture2D));
+            newMaterial.SetTexture ("_BumpMap", normalTexture);
+            
+            Texture2D occlusionTexture = (Texture2D) AssetDatabase.LoadAssetAtPath (PATH + h3dMaterial.Texture1Name + ".png", typeof(Texture2D));
+            newMaterial.SetTexture ("_OcclusionMap", occlusionTexture);
+            
+            AssetDatabase.CreateAsset (newMaterial, PATH + h3dMaterial.Name + ".mat");
+            matDict.Add (h3dMaterial.Name, newMaterial);
+        }
+        AssetDatabase.SaveAssets ();
+        return matDict;
     }
 
 
@@ -135,8 +184,9 @@ public class RawImporter2 : MonoBehaviour
     //     }
     // }
     
-    private static void GenerateMeshInUnityScene (H3D h3DScene)
+    private static Dictionary<string, SkinnedMeshRenderer> GenerateMeshInUnityScene (H3D h3DScene)
     {
+        var meshDict = new Dictionary<string, SkinnedMeshRenderer> ();
         //To be removed after testing
         var toBeDestroyed = GameObject.Find ("Test");
         if (toBeDestroyed != null) {
@@ -260,9 +310,11 @@ public class RawImporter2 : MonoBehaviour
             
                 meshFilter.sharedMesh = mesh;
                 SaveMeshAtPath (mesh, "Assets/Raw/test/" + subMeshName + ".asset");
+                meshDict.Add (subMeshName, meshRenderer);
             }
         }
         DestroyImmediate (emptyGo);
+        return meshDict;
     }
 
     
