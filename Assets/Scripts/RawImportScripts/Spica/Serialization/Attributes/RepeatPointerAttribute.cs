@@ -2,6 +2,8 @@
 
 namespace SPICA.Serialization.Attributes
 {
-    [AttributeUsage(AttributeTargets.Field)]
-    class RepeatPointerAttribute : Attribute { }
+    [AttributeUsage (AttributeTargets.Field)]
+    internal class RepeatPointerAttribute : Attribute
+    {
+    }
 }

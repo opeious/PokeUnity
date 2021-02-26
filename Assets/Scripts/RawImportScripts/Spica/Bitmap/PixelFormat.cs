@@ -22,5 +22,5 @@
     Format64bppPArgb = 1851406, // 0x001C400E
     Canonical = 2097152, // 0x00200000
     Format32bppArgb = 2498570, // 0x0026200A
-    Format64bppArgb = 3424269, // 0x0034400D
+    Format64bppArgb = 3424269 // 0x0034400D
 }

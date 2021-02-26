@@ -1,35 +1,33 @@
-﻿using SPICA.Formats.Common;
-
-using System.IO;
+﻿using System.IO;
 
 namespace SPICA.Formats.GFL2.Model
 {
     public struct GFHashName
     {
-        public uint   Hash;
+        public uint Hash;
         public string Name;
 
-        public GFHashName(string Name)
+        public GFHashName (string Name)
         {
-            GFNV1 FNV = new GFNV1();
+            var FNV = new GFNV1 ();
 
-            FNV.Hash(Name);
+            FNV.Hash (Name);
 
             Hash = FNV.HashCode;
 
             this.Name = Name;
         }
 
-        public GFHashName(BinaryReader Reader)
+        public GFHashName (BinaryReader Reader)
         {
-            Hash = Reader.ReadUInt32();
-            Name = Reader.ReadString();
+            Hash = Reader.ReadUInt32 ();
+            Name = Reader.ReadString ();
         }
 
-        public void Write(BinaryWriter Writer)
+        public void Write (BinaryWriter Writer)
         {
-            Writer.Write(Hash);
-            Writer.Write(Name);
+            Writer.Write (Hash);
+            Writer.Write (Name);
         }
     }
 }

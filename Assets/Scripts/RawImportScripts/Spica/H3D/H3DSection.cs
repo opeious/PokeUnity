@@ -1,6 +1,6 @@
 ﻿namespace SPICA.Formats.CtrH3D
 {
-    enum H3DSection
+    internal enum H3DSection
     {
         Contents,
         Strings,

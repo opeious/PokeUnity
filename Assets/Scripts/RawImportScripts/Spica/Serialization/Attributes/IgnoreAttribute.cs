@@ -2,5 +2,7 @@
 
 namespace SPICA.Serialization.Attributes
 {
-    class IgnoreAttribute : Attribute { }
+    internal class IgnoreAttribute : Attribute
+    {
+    }
 }

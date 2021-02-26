@@ -1,8 +1,7 @@
-﻿using SPICA.Formats.Common;
-using SPICA.Math3D;
-
-using System.IO;
+﻿using System.IO;
 using System.Numerics;
+using SPICA.Formats.Common;
+using SPICA.Math3D;
 
 namespace SPICA.Formats.GFL2.Model.Material
 {
@@ -15,7 +14,7 @@ namespace SPICA.Formats.GFL2.Model.Material
         public GFTextureMappingType MappingType;
 
         public Vector2 Scale;
-        public float   Rotation;
+        public float Rotation;
         public Vector2 Translation;
 
         public GFTextureWrap WrapU;
@@ -26,55 +25,55 @@ namespace SPICA.Formats.GFL2.Model.Material
 
         public uint MinLOD;
 
-        public GFTextureCoord(BinaryReader Reader)
+        public GFTextureCoord (BinaryReader Reader)
         {
-            Name = new GFHashName(Reader).Name;
+            Name = new GFHashName (Reader).Name;
 
-            UnitIndex = Reader.ReadByte();
+            UnitIndex = Reader.ReadByte ();
 
-            MappingType = (GFTextureMappingType)Reader.ReadByte();
+            MappingType = (GFTextureMappingType) Reader.ReadByte ();
 
-            Scale       = Reader.ReadVector2();
-            Rotation    = Reader.ReadSingle();
-            Translation = Reader.ReadVector2();
+            Scale = Reader.ReadVector2 ();
+            Rotation = Reader.ReadSingle ();
+            Translation = Reader.ReadVector2 ();
 
-            WrapU = (GFTextureWrap)Reader.ReadUInt32();
-            WrapV = (GFTextureWrap)Reader.ReadUInt32();
+            WrapU = (GFTextureWrap) Reader.ReadUInt32 ();
+            WrapV = (GFTextureWrap) Reader.ReadUInt32 ();
 
-            MagFilter = (GFMagFilter)Reader.ReadUInt32(); //Not sure
-            MinFilter = (GFMinFilter)Reader.ReadUInt32(); //Not sure
+            MagFilter = (GFMagFilter) Reader.ReadUInt32 (); //Not sure
+            MinFilter = (GFMinFilter) Reader.ReadUInt32 (); //Not sure
 
-            MinLOD = Reader.ReadUInt32(); //Not sure
+            MinLOD = Reader.ReadUInt32 (); //Not sure
         }
 
-        public Matrix3x4 GetTransform()
+        public Matrix3x4 GetTransform ()
         {
-            return TextureTransform.GetTransform(
+            return TextureTransform.GetTransform (
                 Scale,
                 Rotation,
                 Translation,
                 TextureTransformType.DccMaya);
         }
 
-        public void Write(BinaryWriter Writer)
+        public void Write (BinaryWriter Writer)
         {
-            new GFHashName(Name).Write(Writer);
+            new GFHashName (Name).Write (Writer);
 
-            Writer.Write(UnitIndex);
+            Writer.Write (UnitIndex);
 
-            Writer.Write((byte)MappingType);
+            Writer.Write ((byte) MappingType);
 
-            Writer.Write(Scale);
-            Writer.Write(Rotation);
-            Writer.Write(Translation);
+            Writer.Write (Scale);
+            Writer.Write (Rotation);
+            Writer.Write (Translation);
 
-            Writer.Write((uint)WrapU);
-            Writer.Write((uint)WrapV);
+            Writer.Write ((uint) WrapU);
+            Writer.Write ((uint) WrapV);
 
-            Writer.Write((uint)MagFilter);
-            Writer.Write((uint)MinFilter);
+            Writer.Write ((uint) MagFilter);
+            Writer.Write ((uint) MinFilter);
 
-            Writer.Write(MinLOD);
+            Writer.Write (MinLOD);
         }
     }
 }

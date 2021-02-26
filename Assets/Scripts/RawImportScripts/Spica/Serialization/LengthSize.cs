@@ -1,6 +1,6 @@
 ﻿namespace SPICA.Serialization
 {
-    enum LengthSize
+    internal enum LengthSize
     {
         Short,
         Integer

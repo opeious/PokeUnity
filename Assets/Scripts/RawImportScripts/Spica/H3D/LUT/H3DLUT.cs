@@ -1,6 +1,5 @@
-﻿using SPICA.Formats.Common;
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using SPICA.Formats.Common;
 
 namespace SPICA.Formats.CtrH3D.LUT
 {
@@ -8,17 +7,11 @@ namespace SPICA.Formats.CtrH3D.LUT
     {
         public readonly List<H3DLUTSampler> Samplers;
 
-        private string _Name;
-
-        public string Name
+        public H3DLUT ()
         {
-            get => _Name;
-            set => _Name = value;
+            Samplers = new List<H3DLUTSampler> ();
         }
 
-        public H3DLUT()
-        {
-            Samplers = new List<H3DLUTSampler>();
-        }
+        public string Name { get; set; }
     }
 }

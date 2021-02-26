@@ -8,28 +8,30 @@ namespace SPICA.Formats.CtrH3D
     {
         [Ignore] private string Str;
 
-        public H3DStringUtf16() { }
+        public H3DStringUtf16 ()
+        {
+        }
 
-        public H3DStringUtf16(string Str)
+        public H3DStringUtf16 (string Str)
         {
             this.Str = Str;
         }
 
-        public override string ToString()
+        void ICustomSerialization.Deserialize (BinaryDeserializer Deserializer)
         {
-            return Str ?? string.Empty;
+            Str = Deserializer.Reader.ReadNullTerminatedStringUtf16LE ();
         }
 
-        void ICustomSerialization.Deserialize(BinaryDeserializer Deserializer)
+        bool ICustomSerialization.Serialize (BinarySerializer Serializer)
         {
-            Str = Deserializer.Reader.ReadNullTerminatedStringUtf16LE();
-        }
-
-        bool ICustomSerialization.Serialize(BinarySerializer Serializer)
-        {
-            Serializer.Writer.WriteNullTerminatedStringUtf16LE(Str);
+            Serializer.Writer.WriteNullTerminatedStringUtf16LE (Str);
 
             return true;
+        }
+
+        public override string ToString ()
+        {
+            return Str ?? string.Empty;
         }
     }
 }

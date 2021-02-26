@@ -2,16 +2,16 @@
 
 namespace SPICA.Serialization.Attributes
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field, AllowMultiple = true, Inherited = true)]
-    class TypeChoiceAttribute : Attribute
+    [AttributeUsage (AttributeTargets.Class | AttributeTargets.Field, AllowMultiple = true)]
+    internal class TypeChoiceAttribute : Attribute
     {
-        public uint TypeVal;
         public Type Type;
+        public uint TypeVal;
 
-        public TypeChoiceAttribute(uint TypeVal, Type Type)
+        public TypeChoiceAttribute (uint TypeVal, Type Type)
         {
             this.TypeVal = TypeVal;
-            this.Type    = Type;
+            this.Type = Type;
         }
     }
 }

@@ -2,37 +2,32 @@
 
 namespace SPICA.Serialization
 {
-    class BitWriter
+    internal class BitWriter
     {
-        private BinaryWriter Writer;
-
         private uint Bools;
-        private int  Index;
+        private int Index;
+        private readonly BinaryWriter Writer;
 
-        public BitWriter(BinaryWriter Writer)
+        public BitWriter (BinaryWriter Writer)
         {
             this.Writer = Writer;
         }
 
-        public void WriteBit(bool Value)
+        public void WriteBit (bool Value)
         {
-            Bools |= ((Value ? 1u : 0u) << Index);
+            Bools |= (Value ? 1u : 0u) << Index;
 
-            if (++Index == 32)
-            {
-                Writer.Write(Bools);
+            if (++Index == 32) {
+                Writer.Write (Bools);
 
                 Index = 0;
                 Bools = 0;
             }
         }
 
-        public void Flush()
+        public void Flush ()
         {
-            if (Index != 0)
-            {
-                Writer.Write(Bools);
-            }
+            if (Index != 0) Writer.Write (Bools);
         }
     }
 }

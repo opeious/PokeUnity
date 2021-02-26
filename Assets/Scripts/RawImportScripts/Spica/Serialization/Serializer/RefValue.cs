@@ -3,26 +3,26 @@ using System.Reflection;
 
 namespace SPICA.Serialization.Serializer
 {
-    class RefValue
+    internal class RefValue
     {
         public readonly List<RefValue> Childs;
+        public bool HasLength;
+        public bool HasTwoPtr;
 
         public FieldInfo Info;
 
         public object Parent;
-        public object Value;
-
-        public long Position;
-        public bool HasLength;
-        public bool HasTwoPtr;
         public uint PointerOffset;
 
-        public RefValue()
+        public long Position;
+        public object Value;
+
+        public RefValue ()
         {
-            Childs = new List<RefValue>();
+            Childs = new List<RefValue> ();
         }
 
-        public RefValue(object Value) : this()
+        public RefValue (object Value) : this ()
         {
             this.Value = Value;
 
@@ -30,9 +30,9 @@ namespace SPICA.Serialization.Serializer
 
             Parent = null;
 
-            Position      = -1;
-            HasLength     = false;
-            HasTwoPtr     = false;
+            Position = -1;
+            HasLength = false;
+            HasTwoPtr = false;
             PointerOffset = 0;
         }
     }

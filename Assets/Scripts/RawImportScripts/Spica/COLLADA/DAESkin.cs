@@ -5,26 +5,24 @@ namespace SPICA.Formats.Generic.COLLADA
 {
     public class DAESkin
     {
-        [XmlAttribute] public string source;
-
         public DAEMatrix bind_shape_matrix = DAEMatrix.Identity;
 
-        [XmlElement("source")] public List<DAESource> src = new List<DAESource>();
+        public DAEJoints joints = new DAEJoints ();
+        [XmlAttribute] public string source;
 
-        public DAEJoints  joints         = new DAEJoints();
-        public DAEWeights vertex_weights = new DAEWeights();
+        [XmlElement ("source")] public List<DAESource> src = new List<DAESource> ();
+        public DAEWeights vertex_weights = new DAEWeights ();
     }
 
     public class DAEJoints
     {
-        [XmlElement("input")] public List<DAEInput> input = new List<DAEInput>();
+        [XmlElement ("input")] public List<DAEInput> input = new List<DAEInput> ();
 
-        public void AddInput(string semantic, string source)
+        public void AddInput (string semantic, string source)
         {
-            input.Add(new DAEInput()
-            {
+            input.Add (new DAEInput {
                 semantic = semantic,
-                source   = source
+                source = source
             });
         }
     }
@@ -33,18 +31,17 @@ namespace SPICA.Formats.Generic.COLLADA
     {
         [XmlAttribute] public uint count;
 
-        [XmlElement("input")] public List<DAEInputOffset> input = new List<DAEInputOffset>();
-
-        public string vcount;
+        [XmlElement ("input")] public List<DAEInputOffset> input = new List<DAEInputOffset> ();
         public string v;
 
-        public void AddInput(string semantic, string source, uint offset = 0)
+        public string vcount;
+
+        public void AddInput (string semantic, string source, uint offset = 0)
         {
-            input.Add(new DAEInputOffset()
-            {
+            input.Add (new DAEInputOffset {
                 semantic = semantic,
-                source   = source,
-                offset   = offset
+                source = source,
+                offset = offset
             });
         }
     }

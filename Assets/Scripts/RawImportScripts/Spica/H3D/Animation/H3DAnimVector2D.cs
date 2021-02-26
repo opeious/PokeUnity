@@ -5,28 +5,27 @@ namespace SPICA.Formats.CtrH3D.Animation
 {
     public class H3DAnimVector2D : ICustomSerialization
     {
-        [Ignore] private H3DFloatKeyFrameGroup[] Vector;
+        [Ignore] private readonly H3DFloatKeyFrameGroup[] Vector;
+
+        public H3DAnimVector2D ()
+        {
+            Vector = new[] {
+                new H3DFloatKeyFrameGroup (),
+                new H3DFloatKeyFrameGroup ()
+            };
+        }
 
         public H3DFloatKeyFrameGroup X => Vector[0];
         public H3DFloatKeyFrameGroup Y => Vector[1];
 
-        public H3DAnimVector2D()
+        void ICustomSerialization.Deserialize (BinaryDeserializer Deserializer)
         {
-            Vector = new H3DFloatKeyFrameGroup[]
-            {
-                new H3DFloatKeyFrameGroup(),
-                new H3DFloatKeyFrameGroup()
-            };
+            H3DAnimVector.SetVector (Deserializer, Vector);
         }
 
-        void ICustomSerialization.Deserialize(BinaryDeserializer Deserializer)
+        bool ICustomSerialization.Serialize (BinarySerializer Serializer)
         {
-            H3DAnimVector.SetVector(Deserializer, Vector);
-        }
-
-        bool ICustomSerialization.Serialize(BinarySerializer Serializer)
-        {
-            H3DAnimVector.WriteVector(Serializer, Vector);
+            H3DAnimVector.WriteVector (Serializer, Vector);
 
             return true;
         }

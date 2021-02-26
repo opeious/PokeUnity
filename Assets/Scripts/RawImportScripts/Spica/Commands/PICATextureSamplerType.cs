@@ -1,6 +1,6 @@
 ﻿namespace SPICA.PICA.Commands
 {
-    enum PICATextureSamplerType : uint
+    internal enum PICATextureSamplerType : uint
     {
         UvCoordinateMap,
         CameraCubeEnvMap,

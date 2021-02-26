@@ -1,8 +1,7 @@
-﻿
-namespace SPICA.Formats.Common
+﻿namespace SPICA.Formats.Common
 {
     public interface INameIndexed
     {
-        int Find(string Name);
+        int Find (string Name);
     }
 }

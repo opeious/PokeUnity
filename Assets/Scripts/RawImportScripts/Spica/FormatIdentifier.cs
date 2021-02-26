@@ -1,27 +1,22 @@
-﻿using SPICA.Formats.CtrH3D;
-using SPICA.Formats.CtrH3D.Animation;
+﻿using System.IO;
+using System.Text;
+using SPICA.Formats.CtrH3D;
 using SPICA.Formats.CtrH3D.Model;
 using SPICA.Formats.GFL2;
 using SPICA.Formats.GFL2.Model;
 using SPICA.Formats.GFL2.Motion;
 using SPICA.Formats.GFL2.Texture;
 
-using System;
-using System.IO;
-using System.Text;
-using SPICA.Formats.Packages;
-
 namespace SPICA.WinForms.Formats
 {
-    static class FormatIdentifier
+    internal static class FormatIdentifier
     {
-        public static H3D IdentifyAndOpen(string FileName, H3DDict<H3DBone> Skeleton = null)
+        public static H3D IdentifyAndOpen (string FileName, H3DDict<H3DBone> Skeleton = null)
         {
             //Formats that can by identified by extensions
-            string FilePath = Path.GetDirectoryName(FileName);
+            var FilePath = Path.GetDirectoryName (FileName);
 
-            switch (Path.GetExtension(FileName).ToLower())
-            {
+            switch (Path.GetExtension (FileName).ToLower ()) {
                 // case ".smd": return new SMD(FileName).ToH3D(FilePath);
                 // case ".obj": return new OBJ(FileName).ToH3D(FilePath);
                 // case ".mbn":
@@ -38,49 +33,35 @@ namespace SPICA.WinForms.Formats
             //Formats that can only be indetified by "magic numbers"
             H3D Output = null;
 
-            using (FileStream FS = new FileStream(FileName, FileMode.Open))
-            {
-                if (FS.Length > 4)
-                {
-                    BinaryReader Reader = new BinaryReader(FS);
+            using (var FS = new FileStream (FileName, FileMode.Open)) {
+                if (FS.Length > 4) {
+                    var Reader = new BinaryReader (FS);
 
-                    uint MagicNum = Reader.ReadUInt32();
+                    var MagicNum = Reader.ReadUInt32 ();
 
-                    FS.Seek(-4, SeekOrigin.Current);
+                    FS.Seek (-4, SeekOrigin.Current);
 
-                    string Magic = Encoding.ASCII.GetString(Reader.ReadBytes(4));
+                    var Magic = Encoding.ASCII.GetString (Reader.ReadBytes (4));
 
-                    FS.Seek(0, SeekOrigin.Begin);
+                    FS.Seek (0, SeekOrigin.Begin);
 
-                    if (Magic.StartsWith("BCH"))
-                    {
-                        return H3D.Open(Reader.ReadBytes((int)FS.Length));
+                    if (Magic.StartsWith ("BCH")) {
+                        return H3D.Open (Reader.ReadBytes ((int) FS.Length));
                     }
-                    else if (Magic.StartsWith("MOD"))
-                    {
+
+                    if (Magic.StartsWith ("MOD")) {
                         // return LoadMTModel(Reader, FileName, Path.GetDirectoryName(FileName));
-                    }
-                    else if (Magic.StartsWith("TEX"))
-                    {
+                    } else if (Magic.StartsWith ("TEX")) {
                         // return new MTTexture(Reader, Path.GetFileNameWithoutExtension(FileName)).ToH3D();
-                    }
-                    else if (Magic.StartsWith("MFX"))
-                    {
+                    } else if (Magic.StartsWith ("MFX")) {
                         // MTShader = new MTShaderEffects(Reader);
-                    }
-                    else if (Magic.StartsWith("CGFX"))
-                    {
+                    } else if (Magic.StartsWith ("CGFX")) {
                         // return Gfx.Open(FS);
-                    }
-                    else if (Magic.StartsWith("GFLXPAK"))
-                    {
+                    } else if (Magic.StartsWith ("GFLXPAK")) {
                         // return LoadGflxPak(Reader);
-                    }
-                    else
-                    {
-                        if (GFPackageExtensions.IsValidPackage(FS))
-                        {
-                            GFPackageExtensions.Header PackHeader = GFPackageExtensions.GetPackageHeader(FS);
+                    } else {
+                        if (GFPackageExtensions.IsValidPackage (FS)) {
+                            var PackHeader = GFPackageExtensions.GetPackageHeader (FS);
 
                             switch (PackHeader.Magic) {
                                 // case "AD": Output = GFPackedTexture.OpenAsH3D(FS, PackHeader, 1); break;
@@ -98,40 +79,38 @@ namespace SPICA.WinForms.Formats
                                     break;
                                 // Output = GFPkmnSklAnim.OpenAsH3D(FS, PackHeader, Skeleton); break;
                             }
-                        }
-                        else
-                        {
-                            switch (MagicNum)
-                            {
+                        } else {
+                            switch (MagicNum) {
                                 case 0x15122117:
-                                    Output = new H3D();
+                                    Output = new H3D ();
 
-                                    Output.Models.Add(new GFModel(Reader, "Model").ToH3DModel());
+                                    Output.Models.Add (new GFModel (Reader, "Model").ToH3DModel ());
 
                                     break;
 
                                 case 0x15041213:
-                                    Output = new H3D();
+                                    Output = new H3D ();
 
-                                    Output.Textures.Add(new GFTexture(Reader).ToH3DTexture());
+                                    Output.Textures.Add (new GFTexture (Reader).ToH3DTexture ());
 
                                     break;
 
-                                case 0x00010000: Output = new GFModelPack(Reader).ToH3D(); break;
+                                case 0x00010000:
+                                    Output = new GFModelPack (Reader).ToH3D ();
+                                    break;
                                 case 0x00060000:
-                                    if (Skeleton != null)
-                                    {
-                                        Output = new H3D();
+                                    if (Skeleton != null) {
+                                        Output = new H3D ();
 
-                                        GFMotion Motion = new GFMotion(Reader, 0);
+                                        var Motion = new GFMotion (Reader, 0);
 
-                                        H3DAnimation    SklAnim = Motion.ToH3DSkeletalAnimation(Skeleton);
-                                        H3DMaterialAnim MatAnim = Motion.ToH3DMaterialAnimation();
-                                        H3DAnimation    VisAnim = Motion.ToH3DVisibilityAnimation();
+                                        var SklAnim = Motion.ToH3DSkeletalAnimation (Skeleton);
+                                        var MatAnim = Motion.ToH3DMaterialAnimation ();
+                                        var VisAnim = Motion.ToH3DVisibilityAnimation ();
 
-                                        if (SklAnim != null) Output.SkeletalAnimations.Add(SklAnim);
-                                        if (MatAnim != null) Output.MaterialAnimations.Add(MatAnim);
-                                        if (VisAnim != null) Output.VisibilityAnimations.Add(VisAnim);
+                                        if (SklAnim != null) Output.SkeletalAnimations.Add (SklAnim);
+                                        if (MatAnim != null) Output.MaterialAnimations.Add (MatAnim);
+                                        if (VisAnim != null) Output.VisibilityAnimations.Add (VisAnim);
                                     }
 
                                     break;

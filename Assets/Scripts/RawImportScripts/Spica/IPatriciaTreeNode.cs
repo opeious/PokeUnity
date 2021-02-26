@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SPICA.Formats.Common
+﻿namespace SPICA.Formats.Common
 {
-    interface IPatriciaTreeNode
+    internal interface IPatriciaTreeNode
     {
-        uint   ReferenceBit   { get; set; }
-        ushort LeftNodeIndex  { get; set; }
+        uint ReferenceBit { get; set; }
+        ushort LeftNodeIndex { get; set; }
         ushort RightNodeIndex { get; set; }
-        string Name           { get; set; }
+        string Name { get; set; }
     }
 }

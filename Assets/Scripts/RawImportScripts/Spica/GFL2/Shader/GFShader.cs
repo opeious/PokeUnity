@@ -1,22 +1,19 @@
-﻿using SPICA.Formats.Common;
+﻿using System.IO;
 using SPICA.Math3D;
-using SPICA.PICA;
-using SPICA.PICA.Commands;
-// using SPICA.PICA.Shader;
-
-using System.Collections.Generic;
-using System.IO;
-using System.Numerics;
+using SPICA.PICA.Commands; // using SPICA.PICA.Shader;
 
 namespace SPICA.Formats.GFL2.Shader
 {
     public class GFShader
     {
-        public string Name;
         //
         public readonly PICATexEnvStage[] TexEnvStages;
+
+        public string Name;
+
         //
         public RGBA TexEnvBufferColor;
+
         //
         // public ShaderProgram VtxShader;
         // public ShaderProgram GeoShader;
@@ -41,8 +38,8 @@ namespace SPICA.Formats.GFL2.Shader
         //
         public GFShader (BinaryReader Reader)
         {
-            
         }
+
         //     {
         //         uint MagicNumber = Reader.ReadUInt32();
         //         uint ShaderCount = Reader.ReadUInt32();

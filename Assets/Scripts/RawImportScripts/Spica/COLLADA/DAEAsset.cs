@@ -7,7 +7,7 @@ namespace SPICA.Formats.Generic.COLLADA
         public DateTime created;
         public DateTime modified;
 
-        public DAEAsset()
+        public DAEAsset ()
         {
             created = DateTime.Now;
             modified = DateTime.Now;

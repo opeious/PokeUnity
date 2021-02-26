@@ -5,28 +5,26 @@ namespace SPICA.Formats.GFL2.Motion
 {
     public class GFMotBoolean
     {
+        public readonly List<bool> Values;
         public string Name;
 
-        public readonly List<bool> Values;
-
-        public GFMotBoolean()
+        public GFMotBoolean ()
         {
-            Values = new List<bool>();
+            Values = new List<bool> ();
         }
 
-        public GFMotBoolean(BinaryReader Reader, string Name, int Count) : this()
+        public GFMotBoolean (BinaryReader Reader, string Name, int Count) : this ()
         {
             this.Name = Name;
 
             byte Value = 0;
 
-            for (int Index = 0; Index < Count; Index++)
-            {
-                int Bit = Index & 7;
+            for (var Index = 0; Index < Count; Index++) {
+                var Bit = Index & 7;
 
-                if (Bit == 0) Value = Reader.ReadByte();
+                if (Bit == 0) Value = Reader.ReadByte ();
 
-                Values.Add((Value & (1 << Bit)) != 0);
+                Values.Add ((Value & (1 << Bit)) != 0);
             }
         }
     }

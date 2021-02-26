@@ -8,6 +8,6 @@
         Screen = 4,
         ScreenViewpoint = 5,
         YAxial = 6,
-        YAxialViewpoint = 7,
+        YAxialViewpoint = 7
     }
 }

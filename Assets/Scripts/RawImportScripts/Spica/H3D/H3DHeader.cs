@@ -3,45 +3,45 @@ using SPICA.Serialization.Attributes;
 
 namespace SPICA.Formats.CtrH3D
 {
-    class H3DHeader
+    internal class H3DHeader
     {
-        [Inline]
-        public string Magic;
+        [IfVersion (CmpOp.Gequal, 8)] public ushort AddressCount;
 
-        [Version]
-        public byte BackwardCompatibility;
-        public byte ForwardCompatibility;
+        [Version] public byte BackwardCompatibility;
+
+        public int CommandsAddress;
+        public int CommandsLength;
+
+        public int ContentsAddress;
+
+        public int ContentsLength;
 
         public ushort ConverterVersion;
 
-        public int ContentsAddress;
-        public int StringsAddress;
-        public int CommandsAddress;
-        public int RawDataAddress;
+        [IfVersion (CmpOp.Gequal, 8)] [Padding (2)]
+        public H3DFlags Flags;
 
-        [IfVersion(CmpOp.Gequal, 0x21)]
-        public int RawExtAddress;
+        public byte ForwardCompatibility;
+
+        [Inline] public string Magic;
+
+        public int RawDataAddress;
+        public int RawDataLength;
+
+        [IfVersion (CmpOp.Gequal, 0x21)] public int RawExtAddress;
+
+        [IfVersion (CmpOp.Gequal, 0x21)] public int RawExtLength;
 
         public int RelocationAddress;
 
-        public int ContentsLength;
-        public int StringsLength;
-        public int CommandsLength;
-        public int RawDataLength;
-
-        [IfVersion(CmpOp.Gequal, 0x21)]
-        public int RawExtLength;
-
         public int RelocationLength;
-
-        public int UnInitDataLength;
+        public int StringsAddress;
+        public int StringsLength;
         public int UnInitCommandsLength;
 
-        [IfVersion(CmpOp.Gequal, 8), Padding(2)] public H3DFlags Flags;
+        public int UnInitDataLength;
 
-        [IfVersion(CmpOp.Gequal, 8)] public ushort AddressCount;
-
-        public H3DHeader()
+        public H3DHeader ()
         {
             Magic = "BCH";
         }

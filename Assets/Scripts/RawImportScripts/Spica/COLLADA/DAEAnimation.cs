@@ -5,27 +5,26 @@ namespace SPICA.Formats.Generic.COLLADA
 {
     public class DAEAnimation
     {
+        public DAEChannel channel = new DAEChannel ();
         [XmlAttribute] public string id;
         [XmlAttribute] public string name;
 
-        [XmlElement("source")] public List<DAESource> src = new List<DAESource>();
+        public DAESamplers sampler = new DAESamplers ();
 
-        public DAESamplers sampler = new DAESamplers();
-        public DAEChannel  channel = new DAEChannel();
+        [XmlElement ("source")] public List<DAESource> src = new List<DAESource> ();
     }
 
     public class DAESamplers
     {
         [XmlAttribute] public string id;
 
-        [XmlElement("input")] public List<DAEInput> input = new List<DAEInput>();
+        [XmlElement ("input")] public List<DAEInput> input = new List<DAEInput> ();
 
-        public void AddInput(string semantic, string source)
+        public void AddInput (string semantic, string source)
         {
-            input.Add(new DAEInput()
-            {
+            input.Add (new DAEInput {
                 semantic = semantic,
-                source   = source
+                source = source
             });
         }
     }

@@ -7,6 +7,6 @@ namespace SPICA.Formats.Generic.COLLADA
         [XmlAttribute] public string id;
         [XmlAttribute] public string name;
 
-        public DAESkin skin = new DAESkin();
+        public DAESkin skin = new DAESkin ();
     }
 }

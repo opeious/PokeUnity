@@ -1,10 +1,8 @@
-﻿using SPICA.Formats.Common;
-using SPICA.Formats.CtrH3D.Animation;
-using SPICA.Formats.GFL2.Model;
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using SPICA.Formats.CtrH3D.Animation;
+using SPICA.Formats.GFL2.Model;
 
 namespace SPICA.Formats.GFL2.Motion
 {
@@ -12,63 +10,60 @@ namespace SPICA.Formats.GFL2.Motion
     {
         public readonly List<GFMotBoneTransform> Bones;
 
-        public GFSkeletonMot()
+        public GFSkeletonMot ()
         {
-            Bones = new List<GFMotBoneTransform>();
+            Bones = new List<GFMotBoneTransform> ();
         }
 
-        public GFSkeletonMot(BinaryReader Reader, uint FramesCount) : this()
+        public GFSkeletonMot (BinaryReader Reader, uint FramesCount) : this ()
         {
-            int  BoneNamesCount  = Reader.ReadInt32();
-            uint BoneNamesLength = Reader.ReadUInt32();
+            var BoneNamesCount = Reader.ReadInt32 ();
+            var BoneNamesLength = Reader.ReadUInt32 ();
 
-            long Position = Reader.BaseStream.Position;
+            var Position = Reader.BaseStream.Position;
 
-            string BoneNames = Reader.ReadString();
+            var BoneNames = Reader.ReadString ();
 
-            Reader.BaseStream.Seek(Position + BoneNamesLength, SeekOrigin.Begin);
+            Reader.BaseStream.Seek (Position + BoneNamesLength, SeekOrigin.Begin);
 
             foreach (var name in BoneNames) {
                 var Name = name + "";
-                Bones.Add(new GFMotBoneTransform(Reader, Name, FramesCount));
+                Bones.Add (new GFMotBoneTransform (Reader, Name, FramesCount));
             }
         }
 
-        public H3DAnimation ToH3DAnimation(List<GFBone> Skeleton, GFMotion Motion)
+        public H3DAnimation ToH3DAnimation (List<GFBone> Skeleton, GFMotion Motion)
         {
-            H3DAnimation Output = new H3DAnimation()
-            {
-                Name           = "GFMotion",
-                FramesCount    = Motion.FramesCount,
-                AnimationType  = H3DAnimationType.Skeletal,
+            var Output = new H3DAnimation {
+                Name = "GFMotion",
+                FramesCount = Motion.FramesCount,
+                AnimationType = H3DAnimationType.Skeletal,
                 AnimationFlags = Motion.IsLooping ? H3DAnimationFlags.IsLooping : 0
             };
 
-            foreach (GFMotBoneTransform Bone in Bones)
-            {
-                H3DAnimQuatTransform QuatTransform = new H3DAnimQuatTransform();
+            foreach (var Bone in Bones) {
+                var QuatTransform = new H3DAnimQuatTransform ();
 
-                int BoneIndex = Skeleton.FindIndex(x => x.Name == Bone.Name);
+                var BoneIndex = Skeleton.FindIndex (x => x.Name == Bone.Name);
 
                 if (BoneIndex == -1) continue;
 
-                for (float Frame = 0; Frame < Motion.FramesCount; Frame++)
-                {
-                    Vector3 Scale       = Skeleton[BoneIndex].Scale;
-                    Vector3 Rotation    = Skeleton[BoneIndex].Rotation;
-                    Vector3 Translation = Skeleton[BoneIndex].Translation;
+                for (float Frame = 0; Frame < Motion.FramesCount; Frame++) {
+                    var Scale = Skeleton[BoneIndex].Scale;
+                    var Rotation = Skeleton[BoneIndex].Rotation;
+                    var Translation = Skeleton[BoneIndex].Translation;
 
-                    GFMotBoneTransform.SetFrameValue(Bone.ScaleX,       Frame, ref Scale.X);
-                    GFMotBoneTransform.SetFrameValue(Bone.ScaleY,       Frame, ref Scale.Y);
-                    GFMotBoneTransform.SetFrameValue(Bone.ScaleZ,       Frame, ref Scale.Z);
+                    GFMotBoneTransform.SetFrameValue (Bone.ScaleX, Frame, ref Scale.X);
+                    GFMotBoneTransform.SetFrameValue (Bone.ScaleY, Frame, ref Scale.Y);
+                    GFMotBoneTransform.SetFrameValue (Bone.ScaleZ, Frame, ref Scale.Z);
 
-                    GFMotBoneTransform.SetFrameValue(Bone.RotationX,    Frame, ref Rotation.X);
-                    GFMotBoneTransform.SetFrameValue(Bone.RotationY,    Frame, ref Rotation.Y);
-                    GFMotBoneTransform.SetFrameValue(Bone.RotationZ,    Frame, ref Rotation.Z);
+                    GFMotBoneTransform.SetFrameValue (Bone.RotationX, Frame, ref Rotation.X);
+                    GFMotBoneTransform.SetFrameValue (Bone.RotationY, Frame, ref Rotation.Y);
+                    GFMotBoneTransform.SetFrameValue (Bone.RotationZ, Frame, ref Rotation.Z);
 
-                    GFMotBoneTransform.SetFrameValue(Bone.TranslationX, Frame, ref Translation.X);
-                    GFMotBoneTransform.SetFrameValue(Bone.TranslationY, Frame, ref Translation.Y);
-                    GFMotBoneTransform.SetFrameValue(Bone.TranslationZ, Frame, ref Translation.Z);
+                    GFMotBoneTransform.SetFrameValue (Bone.TranslationX, Frame, ref Translation.X);
+                    GFMotBoneTransform.SetFrameValue (Bone.TranslationY, Frame, ref Translation.Y);
+                    GFMotBoneTransform.SetFrameValue (Bone.TranslationZ, Frame, ref Translation.Z);
 
                     /*
                      * gdkchan Note:
@@ -80,32 +75,28 @@ namespace SPICA.Formats.GFL2.Motion
                      */
                     Quaternion QuatRotation;
 
-                    if (Bone.IsAxisAngle)
-                    {
-                        float Angle = Rotation.Length() * 2;
+                    if (Bone.IsAxisAngle) {
+                        var Angle = Rotation.Length () * 2;
 
                         QuatRotation = Angle > 0
-                            ? Quaternion.CreateFromAxisAngle(Vector3.Normalize(Rotation), Angle)
+                            ? Quaternion.CreateFromAxisAngle (Vector3.Normalize (Rotation), Angle)
                             : Quaternion.Identity;
-                    }
-                    else
-                    {
+                    } else {
                         QuatRotation =
-                            Quaternion.CreateFromAxisAngle(Vector3.UnitZ, Rotation.Z) *
-                            Quaternion.CreateFromAxisAngle(Vector3.UnitY, Rotation.Y) *
-                            Quaternion.CreateFromAxisAngle(Vector3.UnitX, Rotation.X);
+                            Quaternion.CreateFromAxisAngle (Vector3.UnitZ, Rotation.Z) *
+                            Quaternion.CreateFromAxisAngle (Vector3.UnitY, Rotation.Y) *
+                            Quaternion.CreateFromAxisAngle (Vector3.UnitX, Rotation.X);
                     }
 
-                    QuatTransform.Scales.Add(Scale);
-                    QuatTransform.Rotations.Add(QuatRotation);
-                    QuatTransform.Translations.Add(Translation);
+                    QuatTransform.Scales.Add (Scale);
+                    QuatTransform.Rotations.Add (QuatRotation);
+                    QuatTransform.Translations.Add (Translation);
                 }
 
-                Output.Elements.Add(new H3DAnimationElement()
-                {
-                    Name          = Bone.Name,
-                    Content       = QuatTransform,
-                    TargetType    = H3DTargetType.Bone,
+                Output.Elements.Add (new H3DAnimationElement {
+                    Name = Bone.Name,
+                    Content = QuatTransform,
+                    TargetType = H3DTargetType.Bone,
                     PrimitiveType = H3DPrimitiveType.QuatTransform
                 });
             }

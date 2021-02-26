@@ -8,12 +8,12 @@ namespace SPICA.Formats.Generic.COLLADA
         [XmlAttribute] public string id;
         [XmlAttribute] public string name;
 
-        [XmlElement("node")] public List<DAENode> node = new List<DAENode>();
+        [XmlElement ("node")] public List<DAENode> node = new List<DAENode> ();
     }
 
     public class DAEScene
     {
-        public DAEInstanceVisualScene instance_visual_scene = new DAEInstanceVisualScene();
+        public DAEInstanceVisualScene instance_visual_scene = new DAEInstanceVisualScene ();
     }
 
     public class DAEInstanceVisualScene

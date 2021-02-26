@@ -2,11 +2,11 @@
 
 namespace SPICA.Serialization.Attributes
 {
-    class PaddingAttribute : Attribute
+    internal class PaddingAttribute : Attribute
     {
         public int Size;
 
-        public PaddingAttribute(int Size)
+        public PaddingAttribute (int Size)
         {
             this.Size = Size;
         }

@@ -1,28 +1,27 @@
-﻿using SPICA.Math3D;
-
-using System.Numerics;
+﻿using System.Numerics;
+using SPICA.Math3D;
 
 namespace SPICA.Formats.CtrH3D.Light
 {
     public class H3DFragmentLight
     {
         public RGBA AmbientColor;
-        public RGBA DiffuseColor;
-        public RGBA Specular0Color;
-        public RGBA Specular1Color;
-
-        public Vector3 Direction;
-
-        private uint DistanceSamplerPtr;
-        private uint AngleSamplerPtr;
-
-        public float AttenuationStart;
-        public float AttenuationEnd;
-
-        public string DistanceLUTTableName;
-        public string DistanceLUTSamplerName;
+        public string AngleLUTSamplerName;
 
         public string AngleLUTTableName;
-        public string AngleLUTSamplerName;
+        private uint AngleSamplerPtr;
+        public float AttenuationEnd;
+
+        public float AttenuationStart;
+        public RGBA DiffuseColor;
+
+        public Vector3 Direction;
+        public string DistanceLUTSamplerName;
+
+        public string DistanceLUTTableName;
+
+        private uint DistanceSamplerPtr;
+        public RGBA Specular0Color;
+        public RGBA Specular1Color;
     }
 }

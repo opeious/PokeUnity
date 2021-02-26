@@ -8,24 +8,24 @@
 
         public byte Reference;
 
-        public PICAAlphaTest(uint Param)
+        public PICAAlphaTest (uint Param)
         {
             Enabled = (Param & 1) != 0;
 
-            Function = (PICATestFunc)((Param >> 4) & 7);
+            Function = (PICATestFunc) ((Param >> 4) & 7);
 
-            Reference = (byte)(Param >> 8);
+            Reference = (byte) (Param >> 8);
         }
 
-        public uint ToUInt32()
+        public uint ToUInt32 ()
         {
             uint Param = 0;
 
             Param |= Enabled ? 1u : 0u;
-            
-            Param |= ((uint)Function & 7) << 4;
 
-            Param |= (uint)Reference << 8;
+            Param |= ((uint) Function & 7) << 4;
+
+            Param |= (uint) Reference << 8;
 
             return Param;
         }

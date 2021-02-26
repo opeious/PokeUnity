@@ -1,28 +1,31 @@
-﻿using SPICA.Formats.Common;
-using SPICA.Serialization.Attributes;
-
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using SPICA.Formats.Common;
+using SPICA.Serialization.Attributes;
 
 namespace SPICA.Formats.CtrH3D
 {
     [Inline]
     public class H3DDict<T> : IPatriciaDict<T> where T : INamed
     {
-        private List<T>         Values;
-        private H3DPatriciaTree NameTree;
+        private readonly H3DPatriciaTree NameTree;
+        private readonly List<T> Values;
 
-        public T this[int Index]
+        public H3DDict ()
         {
+            Values = new List<T> ();
+            NameTree = new H3DPatriciaTree ();
+        }
+
+        public T this [int Index] {
             get => Values[Index];
             set => Values[Index] = value;
         }
 
-        public T this[string Name]
-        {
-            get => Values[NameTree.Find(Name)];
-            set => Values[NameTree.Find(Name)] = value;
+        public T this [string Name] {
+            get => Values[NameTree.Find (Name)];
+            set => Values[NameTree.Find (Name)] = value;
         }
 
         public bool IsReadOnly => false;
@@ -31,94 +34,88 @@ namespace SPICA.Formats.CtrH3D
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
-        public H3DDict()
+        public IEnumerator<T> GetEnumerator ()
         {
-            Values   = new List<T>();
-            NameTree = new H3DPatriciaTree();
+            return Values.GetEnumerator ();
         }
 
-        public IEnumerator<T> GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator ()
         {
-            return Values.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        private void OnCollectionChanged(NotifyCollectionChangedAction Action, T NewItem, int Index = -1)
-        {
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(Action, NewItem, Index));
+            return GetEnumerator ();
         }
 
         //List management methods
-        public void Add(T Value)
+        public void Add (T Value)
         {
-            Values.Add(Value);
+            Values.Add (Value);
 
-            NameTree.Add(((INamed)Value).Name);
+            NameTree.Add (((INamed) Value).Name);
 
-            OnCollectionChanged(NotifyCollectionChangedAction.Add, Value);
+            OnCollectionChanged (NotifyCollectionChangedAction.Add, Value);
         }
 
-        public void Insert(int Index, T Value)
+        public void Insert (int Index, T Value)
         {
-            Values.Insert(Index, Value);
+            Values.Insert (Index, Value);
 
-            NameTree.Insert(Index, ((INamed)Value).Name);
+            NameTree.Insert (Index, ((INamed) Value).Name);
 
-            OnCollectionChanged(NotifyCollectionChangedAction.Replace, Value, Index);
+            OnCollectionChanged (NotifyCollectionChangedAction.Replace, Value, Index);
         }
 
-        public bool Remove(T Value)
+        public bool Remove (T Value)
         {
-            bool Removed = Values.Remove(Value);
+            var Removed = Values.Remove (Value);
 
-            NameTree.Remove(((INamed)Value).Name);
+            NameTree.Remove (((INamed) Value).Name);
 
-            OnCollectionChanged(NotifyCollectionChangedAction.Remove, Value);
+            OnCollectionChanged (NotifyCollectionChangedAction.Remove, Value);
 
             return Removed;
         }
 
-        public void Clear()
+        public void Clear ()
         {
-            Values.Clear();
+            Values.Clear ();
 
-            NameTree.Clear();
+            NameTree.Clear ();
 
-            OnCollectionChanged(NotifyCollectionChangedAction.Reset, default(T));
+            OnCollectionChanged (NotifyCollectionChangedAction.Reset, default);
         }
 
-        public int Find(string Name)
+        public int Find (string Name)
         {
-            return NameTree.Find(Name);
+            return NameTree.Find (Name);
         }
 
-        public bool Contains(string Name)
+        public bool Contains (string Name)
         {
-            return NameTree.Contains(Name);
+            return NameTree.Contains (Name);
         }
 
-        public bool Contains(T Value)
+        public bool Contains (T Value)
         {
-            return Values.Contains(Value);
+            return Values.Contains (Value);
         }
 
-        public void Remove(int Index)
+        public void CopyTo (T[] Array, int Index)
         {
-            Remove(this[Index]);
+            Values.CopyTo (Array, Index);
         }
 
-        public void Remove(string Name)
+        private void OnCollectionChanged (NotifyCollectionChangedAction Action, T NewItem, int Index = -1)
         {
-            Remove(this[Name]);
+            CollectionChanged?.Invoke (this, new NotifyCollectionChangedEventArgs (Action, NewItem, Index));
         }
 
-        public void CopyTo(T[] Array, int Index)
+        public void Remove (int Index)
         {
-            Values.CopyTo(Array, Index);
+            Remove (this[Index]);
+        }
+
+        public void Remove (string Name)
+        {
+            Remove (this[Name]);
         }
     }
 }

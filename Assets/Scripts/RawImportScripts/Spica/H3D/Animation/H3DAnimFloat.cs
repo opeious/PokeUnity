@@ -7,21 +7,21 @@ namespace SPICA.Formats.CtrH3D.Animation
     {
         [Ignore] private H3DFloatKeyFrameGroup _Value;
 
+        public H3DAnimFloat ()
+        {
+            _Value = new H3DFloatKeyFrameGroup ();
+        }
+
         public H3DFloatKeyFrameGroup Value => _Value;
 
-        public H3DAnimFloat()
+        void ICustomSerialization.Deserialize (BinaryDeserializer Deserializer)
         {
-            _Value = new H3DFloatKeyFrameGroup();
+            H3DAnimVector.SetVector (Deserializer, ref _Value);
         }
 
-        void ICustomSerialization.Deserialize(BinaryDeserializer Deserializer)
+        bool ICustomSerialization.Serialize (BinarySerializer Serializer)
         {
-            H3DAnimVector.SetVector(Deserializer, ref _Value);
-        }
-
-        bool ICustomSerialization.Serialize(BinarySerializer Serializer)
-        {
-            H3DAnimVector.WriteVector(Serializer, _Value);
+            H3DAnimVector.WriteVector (Serializer, _Value);
 
             return true;
         }

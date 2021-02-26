@@ -1,6 +1,6 @@
 ﻿namespace SPICA.Serialization
 {
-    enum CmpOp
+    internal enum CmpOp
     {
         Equal,
         Notqual,

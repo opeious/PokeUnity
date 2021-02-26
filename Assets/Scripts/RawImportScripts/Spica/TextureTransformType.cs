@@ -1,6 +1,6 @@
 namespace SPICA.Formats.Common
 {
-    enum TextureTransformType
+    internal enum TextureTransformType
     {
         DccMaya,
         DccSoftImage,

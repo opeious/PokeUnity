@@ -5,18 +5,14 @@ namespace SPICA.Formats.Generic.COLLADA
 {
     public class DAEVector4
     {
+        [XmlText] public string data;
         [XmlAttribute] public string sid;
 
-        [XmlText] public string data;
+        public static DAEVector4 Empty => new DAEVector4 {data = "0 0 0 0"};
 
-        public static DAEVector4 Empty
+        public void Set (Vector4 Vector)
         {
-            get => new DAEVector4() { data = "0 0 0 0" };
-        }
-
-        public void Set(Vector4 Vector)
-        {
-            data = DAEUtils.VectorStr(Vector);
+            data = DAEUtils.VectorStr (Vector);
         }
     }
 }

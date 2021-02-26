@@ -1,7 +1,7 @@
 ﻿namespace SPICA.Serialization
 {
-    interface ICustomSerializeCmd
+    internal interface ICustomSerializeCmd
     {
-        void SerializeCmd(BinarySerializer Serializer, object Value);
+        void SerializeCmd (BinarySerializer Serializer, object Value);
     }
 }

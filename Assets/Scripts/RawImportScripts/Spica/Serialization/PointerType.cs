@@ -1,6 +1,6 @@
 ﻿namespace SPICA.Serialization
 {
-    enum PointerType
+    internal enum PointerType
     {
         Absolute,
         SelfRelative

@@ -2,10 +2,9 @@
 
 public class Bitmap : IDisposable
 {
-    public int Width, Height;
-    
     public PixelFormat PixelFormat;
-    
+    public int Width, Height;
+
     public Bitmap (string fileName)
     {
     }
@@ -22,8 +21,7 @@ public class Bitmap : IDisposable
     {
     }
 
-    public void Dispose()
+    public void Dispose ()
     {
-        
     }
 }

@@ -1,78 +1,77 @@
-﻿using SPICA.Formats.GFL2.Motion;
-
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using SPICA.Formats.GFL2.Motion;
 
 namespace SPICA.Formats.GFL2
 {
     public class GFMotionPack : IEnumerable<GFMotion>
     {
-        private List<GFMotion> Animations;
+        private readonly List<GFMotion> Animations;
 
-        public GFMotion this[int Index]
+        public GFMotionPack ()
         {
+            Animations = new List<GFMotion> ();
+        }
+
+        public GFMotionPack (Stream Input) : this (new BinaryReader (Input))
+        {
+        }
+
+        public GFMotionPack (BinaryReader Reader) : this ()
+        {
+            var AnimsCount = Reader.ReadUInt32 ();
+
+            var Position = Reader.BaseStream.Position;
+
+            for (var Index = 0; Index < AnimsCount; Index++) {
+                Reader.BaseStream.Seek (Position + Index * 4, SeekOrigin.Begin);
+
+                var Address = Reader.ReadUInt32 ();
+
+                if (Address == 0) continue;
+
+                Reader.BaseStream.Seek (Position + Address, SeekOrigin.Begin);
+
+                Animations.Add (new GFMotion (Reader, Index));
+            }
+        }
+
+        public GFMotion this [int Index] {
             get => Animations[Index];
             set => Animations[Index] = value;
         }
 
-        public int Count { get { return Animations.Count; } }
+        public int Count => Animations.Count;
 
-        public GFMotionPack()
+        public IEnumerator<GFMotion> GetEnumerator ()
         {
-            Animations = new List<GFMotion>();
+            return Animations.GetEnumerator ();
         }
 
-        public GFMotionPack(Stream Input) : this(new BinaryReader(Input)) { }
-
-        public GFMotionPack(BinaryReader Reader) : this()
+        IEnumerator IEnumerable.GetEnumerator ()
         {
-            uint AnimsCount = Reader.ReadUInt32();
-
-            long Position = Reader.BaseStream.Position;
-
-            for (int Index = 0; Index < AnimsCount; Index++)
-            {
-                Reader.BaseStream.Seek(Position + Index * 4, SeekOrigin.Begin);
-
-                uint Address = Reader.ReadUInt32();
-
-                if (Address == 0) continue;
-
-                Reader.BaseStream.Seek(Position + Address, SeekOrigin.Begin);
-
-                Animations.Add(new GFMotion(Reader, Index));
-            }
+            return GetEnumerator ();
         }
 
-        public void Add(GFMotion Mot)
+        public void Add (GFMotion Mot)
         {
-            Animations.Add(Mot);
+            Animations.Add (Mot);
         }
 
-        public void Insert(int Index, GFMotion Mot)
+        public void Insert (int Index, GFMotion Mot)
         {
-            Animations.Insert(Index, Mot);
+            Animations.Insert (Index, Mot);
         }
 
-        public void Remove(GFMotion Mot)
+        public void Remove (GFMotion Mot)
         {
-            Animations.Remove(Mot);
+            Animations.Remove (Mot);
         }
 
-        public void Clear()
+        public void Clear ()
         {
-            Animations.Clear();
-        }
-
-        public IEnumerator<GFMotion> GetEnumerator()
-        {
-            return Animations.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
+            Animations.Clear ();
         }
     }
 }

@@ -5,9 +5,9 @@ namespace SPICA.Formats.Generic.COLLADA
     public class DAEMaterial
     {
         [XmlAttribute] public string id;
-        [XmlAttribute] public string name;
 
-        public DAEInstanceEffect instance_effect = new DAEInstanceEffect();
+        public DAEInstanceEffect instance_effect = new DAEInstanceEffect ();
+        [XmlAttribute] public string name;
     }
 
     public class DAEInstanceEffect

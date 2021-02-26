@@ -1,51 +1,48 @@
-﻿using SPICA.Formats.Common;
-
-using System.IO;
+﻿using System.IO;
+using SPICA.Formats.Common;
 
 namespace SPICA.Formats.GFL2
 {
-    class GFSection
+    internal class GFSection
     {
-        public  string Magic;
-        public  uint   Length;
-        private uint   Padding;
+        public uint Length;
+        public string Magic;
+        private uint Padding;
 
-        public GFSection()
+        public GFSection ()
         {
             Padding = 0xffffffff;
         }
 
-        public GFSection(string Magic) : this()
+        public GFSection (string Magic) : this ()
         {
             this.Magic = Magic;
         }
 
-        public GFSection(string Magic, uint Length) : this()
+        public GFSection (string Magic, uint Length) : this ()
         {
-            this.Magic  = Magic;
+            this.Magic = Magic;
             this.Length = Length;
         }
 
-        public GFSection(BinaryReader Reader)
+        public GFSection (BinaryReader Reader)
         {
-            Magic   = Reader.ReadPaddedString(8);
-            Length  = Reader.ReadUInt32();
-            Padding = Reader.ReadUInt32();
+            Magic = Reader.ReadPaddedString (8);
+            Length = Reader.ReadUInt32 ();
+            Padding = Reader.ReadUInt32 ();
         }
 
-        public void Write(BinaryWriter Writer)
+        public void Write (BinaryWriter Writer)
         {
-            Writer.Write(Magic);
-            Writer.Write(Length);
-            Writer.Write(0xffffffffu);
+            Writer.Write (Magic);
+            Writer.Write (Length);
+            Writer.Write (0xffffffffu);
         }
 
-        public static void SkipPadding(Stream BaseStream)
+        public static void SkipPadding (Stream BaseStream)
         {
             if ((BaseStream.Position & 0xf) != 0)
-            {
-                BaseStream.Seek(0x10 - (BaseStream.Position & 0xf), SeekOrigin.Current);
-            }
+                BaseStream.Seek (0x10 - (BaseStream.Position & 0xf), SeekOrigin.Current);
         }
     }
 }

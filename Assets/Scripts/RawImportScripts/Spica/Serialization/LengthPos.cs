@@ -1,6 +1,6 @@
 ﻿namespace SPICA.Serialization
 {
-    enum LengthPos
+    internal enum LengthPos
     {
         BeforePtr,
         AfterPtr
