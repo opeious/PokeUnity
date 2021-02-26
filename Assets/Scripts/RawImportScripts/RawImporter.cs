@@ -7,27 +7,23 @@ using JetBrains.Annotations;
 using SPICA.Formats.Common;
 using SPICA.Formats.CtrH3D;
 using SPICA.Formats.CtrH3D.Model;
+using SPICA.Formats.CtrH3D.Model.Material;
 using SPICA.Formats.CtrH3D.Model.Mesh;
-using SPICA.Formats.Generic.COLLADA;
 using SPICA.PICA.Commands;
-using SPICA.PICA.Converters;
 using SPICA.WinForms.Formats;
-using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
-using UnityEditor.Animations.Rigging;
 using Random = UnityEngine.Random;
 
-public class RawImporter2 : MonoBehaviour
+public class RawImporter : MonoBehaviour
 {
     [MenuItem("MyMenu/Testing")]
     private static void TestImportRaw()
     {
         var h3DScene = new H3D();
 
-        var openFiles = 0;
-
-        var fileNames = new []{"Assets/Raw/Textures/0195 - Flareon.bin","Assets/Raw/Models/0195 - Flareon.bin"};
+        // var fileNames = new []{"Assets/Raw/Textures/0195 - Flareon.bin","Assets/Raw/Models/0195 - Flareon.bin"};
+        var fileNames = new []{"Assets/Raw/Textures/0008 - Charizard.bin","Assets/Raw/Models/0008 - Charizard.bin"};
         foreach (var fileName in fileNames)
         {
             H3DDict<H3DBone> skeleton = null;
@@ -49,13 +45,13 @@ public class RawImporter2 : MonoBehaviour
 
     }
 
-    private static void AddMaterialsToGeneratedMeshes (Dictionary<string, SkinnedMeshRenderer> meshDict, Dictionary<string, Material> matDict, H3D h3dScene)
+    private static void AddMaterialsToGeneratedMeshes (IReadOnlyDictionary<string, SkinnedMeshRenderer> meshDict, IReadOnlyDictionary<string, Material> matDict, H3D h3dScene)
     {
         var h3DModel = h3dScene.Models[0];
         foreach (var h3DMesh in h3DModel.Meshes) {
             foreach (var h3DSubMesh in h3DMesh.SubMeshes) {
                 var h3dSubMeshName = h3DModel.MeshNodesTree.Find (h3DMesh.NodeIndex) + "_" +
-                    h3DModel.Meshes.IndexOf (h3DMesh) + "_" + h3DMesh.SubMeshes.IndexOf (h3DSubMesh);
+                                     h3DModel.Meshes.IndexOf (h3DMesh) + "_" + h3DMesh.SubMeshes.IndexOf (h3DSubMesh);
                 var h3dMaterial = h3DModel.Materials[h3DMesh.MaterialIndex];
                 meshDict[h3dSubMeshName].sharedMaterial = matDict[h3dMaterial.Name];
             }
@@ -92,66 +88,102 @@ public class RawImporter2 : MonoBehaviour
             texture.Apply();
             textureDict.Add (texture.name, texture);
         }
-        
-        //For mirroring
-        var finalDict = new Dictionary<string, Texture2D> ();
-        foreach (var h3DMaterial in h3DScene.Models[0].Materials) {
-            if (textureDict.Count == 0) break;
-
-            var textureNames = h3DMaterial.TextureNames ();
-
-            foreach (var textureName in textureNames.Where (textureName => !finalDict.ContainsKey (textureName))) {
-                Debug.LogError (h3DMaterial.Name + "," + textureName);
-
-                var textureIndex = h3DMaterial.GetTextureIndex (textureName);
-                var textureCoord = h3DMaterial.MaterialParams.TextureCoords[textureIndex];
-                var originalTexture = textureDict[textureName];
-                if (Math.Abs(textureCoord.Scale.X * textureCoord.Scale.Y) <= 1) {
-                    finalDict.Add (textureName, originalTexture);
-                    continue;
-                }
-                var newWidth = originalTexture.width * Math.Abs(textureCoord.Scale.X);
-                var newHeight = originalTexture.height * Math.Abs(textureCoord.Scale.Y);
-                var newTexture = new Texture2D ((int)newWidth, (int)newHeight, TextureFormat.ARGB32, false) {name = textureName};
-                if (Math.Abs(textureCoord.Scale.X) > 1) {
-                    // Graphics.CopyTexture (originalTexture, 0, 0, 0, 0, originalTexture.width, originalTexture.height,
-                    //     newTexture, 0, 0, originalTexture.width, 0);
-                    Graphics.CopyTexture (originalTexture, 0, 0, 0, 0, originalTexture.width, originalTexture.height,
-                        newTexture, 0, 0, 0, 0);   
-                    Graphics.CopyTexture (TextureUtils.FlipTexture (originalTexture), 0, 0, 0, 0, originalTexture.width, originalTexture.height,
-                        newTexture, 0, 0, originalTexture.width, 0);   
-                }
-                finalDict.Add (textureName, newTexture);
-            }
-        }
 
         foreach (var kvp in textureDict) {
             File.WriteAllBytes ("Assets/Raw/test/" + kvp.Key + ".png", kvp.Value.EncodeToPNG ());
         }
-        foreach (var kvp in finalDict) {
-            File.WriteAllBytes ("Assets/Raw/test/m" + kvp.Key + ".png", kvp.Value.EncodeToPNG ());
-        }
-        
+
         AssetDatabase.Refresh();
     }
     
             
+    private static readonly int BaseMap = Shader.PropertyToID ("_BaseMap");
+    private static readonly int NormalMap = Shader.PropertyToID ("_NormalMap");
+    private static readonly int OcclusionMap = Shader.PropertyToID ("_OcclusionMap");
+    private static readonly int BaseMapTiling = Shader.PropertyToID ("_BaseMapTiling");
+    private static readonly int NormalMapTiling = Shader.PropertyToID ("_NormalMapTiling");
+    private static readonly int OcclusionMapTiling = Shader.PropertyToID ("_OcclusionMapTiling");
+
     private static Dictionary<string, Material> GenerateMaterialFiles (H3D h3DScene)
     {
-        string PATH = "Assets/Raw/test/m";
+        var textureDict = new Dictionary<string, TextureUtils.H3DTextureRepresentation> ();
+        foreach (var h3DMaterial in h3DScene.Models[0].Materials) {
+
+            foreach (var textureName in h3DMaterial.TextureNames ()) {
+                if (!textureDict.ContainsKey (textureName)) {
+                    textureDict.Add (textureName, new TextureUtils.H3DTextureRepresentation ());
+                }
+            }
+            
+            if (textureDict.Count == 0) break;
+
+            var textureNames = h3DMaterial.TextureNames ();
+
+            foreach (var h3DTextureName in textureNames) {
+                var textureIndex = h3DMaterial.GetTextureIndex (h3DTextureName);
+                
+                textureDict[h3DTextureName].TextureCoord = h3DMaterial.MaterialParams.TextureCoords[textureIndex];
+                textureDict[h3DTextureName].TextureMapper = h3DMaterial.TextureMappers[textureIndex];
+            }
+        }
+        
+        var PATH = "Assets/Raw/test/";
         var matDict = new Dictionary<string, Material> ();
         foreach (var h3dMaterial in h3DScene.Models[0].Materials) {
-            Material newMaterial = new Material (Shader.Find ("Universal Render Pipeline/Lit"));
+            var newMaterial = new Material (Shader.Find ("Shader Graphs/LitPokemonShader"));
 
-            Texture2D mainTexture = (Texture2D) AssetDatabase.LoadAssetAtPath (PATH + h3dMaterial.Texture0Name + ".png", typeof(Texture2D));
-            newMaterial.SetTexture ("_BaseMap", mainTexture);
-            newMaterial.mainTexture = mainTexture;
-            
-            Texture2D normalTexture = (Texture2D) AssetDatabase.LoadAssetAtPath (PATH + h3dMaterial.Texture2Name + ".png", typeof(Texture2D));
-            newMaterial.SetTexture ("_BumpMap", normalTexture);
-            
-            Texture2D occlusionTexture = (Texture2D) AssetDatabase.LoadAssetAtPath (PATH + h3dMaterial.Texture1Name + ".png", typeof(Texture2D));
-            newMaterial.SetTexture ("_OcclusionMap", occlusionTexture);
+            var mainTexturePath = PATH + h3dMaterial.Texture0Name + ".png";
+            var mainTexture = (Texture2D) AssetDatabase.LoadAssetAtPath (mainTexturePath, typeof(Texture2D));
+            if (mainTexture != null) {
+                var mainTextureRepresentation = textureDict[h3dMaterial.Texture0Name];
+                
+                var importer = (TextureImporter) AssetImporter.GetAtPath (mainTexturePath);
+                importer.wrapModeU = TextureUtils.PicaToUnityTextureWrapMode(mainTextureRepresentation.TextureMapper.WrapU); 
+                importer.wrapModeV = TextureUtils.PicaToUnityTextureWrapMode(mainTextureRepresentation.TextureMapper.WrapV);
+                importer.maxTextureSize = 256;
+                AssetDatabase.ImportAsset (mainTexturePath, ImportAssetOptions.ForceUpdate);
+
+                newMaterial.SetVector (BaseMapTiling,
+                    new Vector4 (mainTextureRepresentation.TextureCoord.Scale.X,
+                        mainTextureRepresentation.TextureCoord.Scale.Y, 0, 0));
+                newMaterial.SetTexture (BaseMap, mainTexture);
+                newMaterial.mainTexture = mainTexture;   
+            }
+
+            var normalMapPath = PATH + h3dMaterial.Texture2Name + ".png";
+            var normalTexture = (Texture2D) AssetDatabase.LoadAssetAtPath (normalMapPath, typeof(Texture2D));
+            if (normalTexture != null) {
+                var normalTextureRepresentation = textureDict[h3dMaterial.Texture2Name];
+                
+                var importer = (TextureImporter) AssetImporter.GetAtPath (normalMapPath);
+                importer.textureType = TextureImporterType.NormalMap;
+                importer.wrapModeU = TextureUtils.PicaToUnityTextureWrapMode(normalTextureRepresentation.TextureMapper.WrapU); 
+                importer.wrapModeV = TextureUtils.PicaToUnityTextureWrapMode(normalTextureRepresentation.TextureMapper.WrapV);
+                importer.maxTextureSize = 256;
+                AssetDatabase.ImportAsset (normalMapPath, ImportAssetOptions.ForceUpdate);
+
+                newMaterial.SetVector (NormalMapTiling,
+                    new Vector4 (normalTextureRepresentation.TextureCoord.Scale.X,
+                        normalTextureRepresentation.TextureCoord.Scale.Y, 0, 0));
+                newMaterial.SetTexture (NormalMap, normalTexture);    
+            }
+
+            var occlusionMapPath = PATH + h3dMaterial.Texture1Name + ".png";
+            var occlusionTexture = (Texture2D) AssetDatabase.LoadAssetAtPath (occlusionMapPath, typeof(Texture2D));
+            if (occlusionTexture != null) {
+                var occlusionMapRepresentation = textureDict[h3dMaterial.Texture2Name];
+                
+                var importer = (TextureImporter) AssetImporter.GetAtPath (occlusionMapPath);
+                importer.wrapModeU = TextureUtils.PicaToUnityTextureWrapMode(occlusionMapRepresentation.TextureMapper.WrapU); 
+                importer.wrapModeV = TextureUtils.PicaToUnityTextureWrapMode(occlusionMapRepresentation.TextureMapper.WrapV);
+                importer.maxTextureSize = 256;
+                AssetDatabase.ImportAsset (occlusionMapPath, ImportAssetOptions.ForceUpdate);
+
+                newMaterial.SetVector (OcclusionMapTiling,
+                    new Vector4 (occlusionMapRepresentation.TextureCoord.Scale.X,
+                        occlusionMapRepresentation.TextureCoord.Scale.Y, 0, 0));
+                newMaterial.SetTexture (OcclusionMap, occlusionTexture);
+            }
             
             AssetDatabase.CreateAsset (newMaterial, PATH + h3dMaterial.Name + ".mat");
             matDict.Add (h3dMaterial.Name, newMaterial);
@@ -161,29 +193,6 @@ public class RawImporter2 : MonoBehaviour
     }
 
 
-    // public static class TextureExtensions {
-    //     public static TextureFormat ToGFTextureFormat(this TextureFormat Format) {
-    //         switch (Format) {
-    //             case PICATextureFormat.RGB565: return TextureFormat.RGB565;
-    //             case PICATextureFormat.RGB8: return TextureFormat.RGB8;
-    //             case PICATextureFormat.RGBA8: return TextureFormat.RGBA8;
-    //             case PICATextureFormat.RGBA4: return TextureFormat.RGBA4;
-    //             case PICATextureFormat.RGBA5551: return TextureFormat.RGBA5551;
-    //             case PICATextureFormat.LA8: return TextureFormat.LA8;
-    //             case PICATextureFormat.HiLo8: return TextureFormat.HiLo8;
-    //             case PICATextureFormat.L8: return TextureFormat.L8;
-    //             case PICATextureFormat.A8: return TextureFormat.A8;
-    //             case PICATextureFormat.LA4: return TextureFormat.LA4;
-    //             case PICATextureFormat.L4: return TextureFormat.L4;
-    //             case PICATextureFormat.A4: return TextureFormat.A4;
-    //             case PICATextureFormat.ETC1: return TextureFormat.ETC1;
-    //             case PICATextureFormat.ETC1A4: return TextureFormat.ETC1A4;
-    //
-    //             default: throw new ArgumentException("Invalid format!");
-    //         }
-    //     }
-    // }
-    
     private static Dictionary<string, SkinnedMeshRenderer> GenerateMeshInUnityScene (H3D h3DScene)
     {
         var meshDict = new Dictionary<string, SkinnedMeshRenderer> ();
@@ -198,7 +207,6 @@ public class RawImporter2 : MonoBehaviour
         var emptyGo = new GameObject("EmptyGo");
         var sceneGo = new GameObject("Test");
         
-        //TODO: Material setup
         var whiteMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Scripts/RawImportScripts/TestMat.mat");
 
         var skeletonRoot = SkeletonUtils.GenerateSkeletonForModel (h3DModel);
@@ -317,9 +325,6 @@ public class RawImporter2 : MonoBehaviour
         return meshDict;
     }
 
-    
-    
-    private const float RadToDegConstant = (float)((1 / Math.PI) * 180);
 
     private static void SpawnBones (SkeletonUtils.SkeletonNode root, GameObject parentGo, GameObject nodeGo)
     {
